@@ -49,12 +49,44 @@ export const deleteSkill = createAsyncThunk(
   }
 );
 
+export const uploadCVPDF = createAsyncThunk(
+  'profile/uploadCVPDF',
+  async (file, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('pdf', file);
+      
+      const response = await api.post('/cv-analysis/upload-pdf', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data.profile;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to upload and analyze PDF');
+    }
+  }
+);
+
+export const analyzeCVText = createAsyncThunk(
+  'profile/analyzeCVText',
+  async (cvText, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/cv-analysis/analyze-text', { cvText });
+      return response.data.profile;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to analyze CV text');
+    }
+  }
+);
+
 const profileSlice = createSlice({
   name: 'profile',
   initialState: {
     data: null,
     loading: false,
-    error: null
+    error: null,
+    analyzing: false
   },
   reducers: {
     clearProfileError: (state) => {
@@ -86,6 +118,30 @@ const profileSlice = createSlice({
         if (state.data) {
           state.data.skills = state.data.skills.filter(s => s.id !== action.payload);
         }
+      })
+      .addCase(uploadCVPDF.pending, (state) => {
+        state.analyzing = true;
+        state.error = null;
+      })
+      .addCase(uploadCVPDF.fulfilled, (state, action) => {
+        state.analyzing = false;
+        state.data = action.payload;
+      })
+      .addCase(uploadCVPDF.rejected, (state, action) => {
+        state.analyzing = false;
+        state.error = action.payload;
+      })
+      .addCase(analyzeCVText.pending, (state) => {
+        state.analyzing = true;
+        state.error = null;
+      })
+      .addCase(analyzeCVText.fulfilled, (state, action) => {
+        state.analyzing = false;
+        state.data = action.payload;
+      })
+      .addCase(analyzeCVText.rejected, (state, action) => {
+        state.analyzing = false;
+        state.error = action.payload;
       });
   }
 });

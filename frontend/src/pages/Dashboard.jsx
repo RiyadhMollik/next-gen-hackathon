@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import JobCard from '../components/JobCard';
 import ResourceCard from '../components/ResourceCard';
+import JobMatching from '../components/JobMatching';
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -166,6 +167,11 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* AI-Powered Job Matching */}
+        <div className="mb-10">
+          <JobMatching />
         </div>
 
         {/* Recommended Jobs */}

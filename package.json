@@ -9,7 +9,16 @@
     "install-all": "cd backend && npm install && cd ../frontend && npm install",
     "seed": "cd backend && npm run seed"
   },
-  "keywords": ["sdg8", "employment", "career", "youth", "hackathon"],
+  "keywords": [
+    "sdg8",
+    "employment",
+    "career",
+    "youth",
+    "hackathon"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1"
+  }
 }
