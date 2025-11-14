@@ -253,7 +253,7 @@ export const submitAnswer = async (req, res) => {
 export const completeInterview = async (req, res) => {
   try {
     const { interviewId } = req.params;
-    const { duration } = req.body;
+    const { duration, integrityReport, behaviorReport } = req.body;
 
     const interview = await Interview.findOne({
       where: {
@@ -308,12 +308,21 @@ export const completeInterview = async (req, res) => {
 
     const feedbackData = JSON.parse(completion.choices[0].message.content);
 
-    // Update interview with feedback
+    // Update interview with feedback and monitoring reports
     interview.feedback = feedbackData.questionFeedback;
     interview.overallScore = feedbackData.overallScore;
     interview.status = 'completed';
     interview.duration = duration;
     interview.completedAt = new Date();
+    
+    // Store integrity and behavior analysis reports
+    if (integrityReport) {
+      interview.integrityReport = JSON.stringify(integrityReport);
+    }
+    if (behaviorReport) {
+      interview.behaviorReport = JSON.stringify(behaviorReport);
+    }
+    
     await interview.save();
 
     res.json({

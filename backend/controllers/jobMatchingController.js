@@ -22,39 +22,109 @@ export const getJobMatches = async (req, res) => {
     const experience = req.query.experience || user.experienceLevel;
     const track = req.query.track || user.preferredCareerTrack;
 
-    // Forward request to Python chatbot server
-    const response = await axios.get(
-      `${CHATBOT_API_URL}/job-match/${req.userId}`,
-      {
-        params: {
-          experience,
-          track,
-          top_n: topN
-        },
-        timeout: 30000 // 30 second timeout
-      }
-    );
-
-    res.json(response.data);
+    // Try to connect to Python service, but provide fallback if unavailable
+    try {
+      const response = await axios.get(
+        `${CHATBOT_API_URL}/job-match/${req.userId}`,
+        {
+          params: {
+            experience,
+            track,
+            top_n: topN
+          },
+          timeout: 5000 // Reduced timeout for faster fallback
+        }
+      );
+      
+      res.json(response.data);
+      return;
+    } catch (serviceError) {
+      console.warn('Python job matching service unavailable, using fallback:', serviceError.message);
+      
+      // Fallback: Get dynamic job matches from database
+      const jobMatches = await getDynamicJobMatches(req.userId, experience, track, topN);
+      res.json(jobMatches);
+    }
   } catch (error) {
     console.error('Job matching error:', error);
-    
-    if (error.code === 'ECONNREFUSED') {
-      return res.status(503).json({ 
-        message: 'Job matching service is currently unavailable. Please try again later.' 
-      });
-    }
-
-    if (error.response) {
-      return res.status(error.response.status).json({
-        message: error.response.data.detail || 'Failed to get job matches'
-      });
-    }
-
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Failed to get job matches',
       error: error.message 
     });
+  }
+};
+
+// Helper function to get dynamic job matches from database when Python service is unavailable
+const getDynamicJobMatches = async (userId, experience, track, topN) => {
+  try {
+    // Import Job model
+    const Job = await import('../models/Job.js').then(module => module.default);
+    
+    // Build query based on experience and track
+    const whereClause = {};
+    
+    // Filter by experience level if provided
+    if (experience) {
+      whereClause.experienceLevel = experience;
+    }
+    
+    // Search for jobs that match the career track in title or description
+    if (track) {
+      const { Op } = await import('sequelize');
+      whereClause[Op.or] = [
+        { title: { [Op.like]: `%${track}%` } },
+        { description: { [Op.like]: `%${track}%` } },
+        { requiredSkills: { [Op.like]: `%${track}%` } }
+      ];
+    }
+    
+    // Fetch matching jobs from database
+    const jobs = await Job.findAll({
+      where: whereClause,
+      limit: topN,
+      order: [['createdAt', 'DESC']],
+      attributes: [
+        'id', 'title', 'company', 'location', 'salary', 
+        'description', 'requiredSkills', 'benefits', 
+        'experienceLevel', 'jobType', 'createdAt'
+      ]
+    });
+    
+    // Transform jobs to match expected format
+    const transformedJobs = jobs.map((job, index) => ({
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      salary: job.salary,
+      match_score: Math.max(0.95 - (index * 0.05), 0.5), // Decreasing match score
+      description: job.description,
+      requirements: job.requiredSkills ? job.requiredSkills.split(',').map(s => s.trim()) : [],
+      benefits: job.benefits ? job.benefits.split(',').map(s => s.trim()) : [],
+      experience_level: job.experienceLevel,
+      job_type: job.jobType
+    }));
+    
+    return {
+      user_id: userId,
+      experience_level: experience,
+      career_track: track,
+      total_matches: transformedJobs.length,
+      top_matches: transformedJobs,
+      generated_at: new Date().toISOString(),
+      source: "database_fallback"
+    };
+  } catch (error) {
+    console.error('Error fetching jobs from database:', error);
+    return {
+      user_id: userId,
+      experience_level: experience,
+      career_track: track,
+      total_matches: 0,
+      top_matches: [],
+      generated_at: new Date().toISOString(),
+      error: "Unable to fetch job matches at this time"
+    };
   }
 };
 

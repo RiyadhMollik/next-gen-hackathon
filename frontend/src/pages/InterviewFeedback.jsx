@@ -31,6 +31,12 @@ const InterviewFeedback = () => {
       if (typeof interviewData.userAnswers === 'string') {
         interviewData.userAnswers = JSON.parse(interviewData.userAnswers);
       }
+      if (typeof interviewData.integrityReport === 'string') {
+        interviewData.integrityReport = JSON.parse(interviewData.integrityReport);
+      }
+      if (typeof interviewData.behaviorReport === 'string') {
+        interviewData.behaviorReport = JSON.parse(interviewData.behaviorReport);
+      }
       
       setInterview(interviewData);
     } catch (error) {
@@ -242,6 +248,160 @@ const InterviewFeedback = () => {
             </div>
           </div>
         </div>
+
+        {/* Interview Integrity & Behavior Analysis */}
+        {(interview.integrityReport || interview.behaviorReport) && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Interview Integrity & Behavior Analysis</h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Interview Integrity Report */}
+              {interview.integrityReport && (
+                <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      interview.integrityReport.integrityScore >= 80 ? 'bg-green-600' : 
+                      interview.integrityReport.integrityScore >= 60 ? 'bg-yellow-600' : 'bg-red-600'
+                    }`}>
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">Interview Integrity</h3>
+                      <p className="text-sm text-gray-600">Fraud Detection & Monitoring</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {/* Integrity Score */}
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="font-medium text-gray-700">Integrity Score</span>
+                      <span className={`text-2xl font-bold ${
+                        interview.integrityReport.integrityScore >= 80 ? 'text-green-600' : 
+                        interview.integrityReport.integrityScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        {interview.integrityReport.integrityScore}/100
+                      </span>
+                    </div>
+                    
+                    {/* Violations Summary */}
+                    {interview.integrityReport.violations && interview.integrityReport.violations.length > 0 ? (
+                      <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                        <h4 className="font-medium text-red-800 mb-2">Violations Detected ({interview.integrityReport.violations.length})</h4>
+                        <div className="space-y-1 text-sm text-red-700">
+                          {interview.integrityReport.violations.slice(0, 3).map((violation, idx) => (
+                            <div key={idx} className="flex justify-between">
+                              <span>{violation.type}</span>
+                              <span className="font-medium">{violation.severity}</span>
+                            </div>
+                          ))}
+                          {interview.integrityReport.violations.length > 3 && (
+                            <div className="text-xs text-red-600">+{interview.integrityReport.violations.length - 3} more violations</div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="text-sm text-green-700 font-medium">✓ No integrity violations detected</div>
+                      </div>
+                    )}
+                    
+                    {/* Key Metrics */}
+                    {interview.integrityReport.sessionSummary && (
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="p-2 bg-white rounded text-center">
+                          <div className="font-bold text-gray-900">{interview.integrityReport.sessionSummary.totalViolations || 0}</div>
+                          <div className="text-gray-600">Total Violations</div>
+                        </div>
+                        <div className="p-2 bg-white rounded text-center">
+                          <div className="font-bold text-gray-900">{interview.integrityReport.sessionSummary.monitoringDuration || 'N/A'}</div>
+                          <div className="text-gray-600">Monitored Duration</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Behavior Analysis Report */}
+              {interview.behaviorReport && (
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-blue-900">Behavioral Analysis</h3>
+                      <p className="text-sm text-blue-600">AI-Powered Behavior Assessment</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {/* Key Behavioral Metrics */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-white rounded-lg">
+                        <div className="text-sm text-gray-600">Attention Score</div>
+                        <div className="text-xl font-bold text-blue-600">{interview.behaviorReport.averageAttentionScore || interview.behaviorReport.attentionScore || 'N/A'}%</div>
+                      </div>
+                      <div className="p-3 bg-white rounded-lg">
+                        <div className="text-sm text-gray-600">Confidence Level</div>
+                        <div className={`text-lg font-bold capitalize ${
+                          interview.behaviorReport.keyFindings?.averageConfidenceLevel === 'high' || interview.behaviorReport.confidenceLevel === 'high' ? 'text-green-600' : 
+                          interview.behaviorReport.keyFindings?.averageConfidenceLevel === 'medium' || interview.behaviorReport.confidenceLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                        }`}>
+                          {interview.behaviorReport.keyFindings?.averageConfidenceLevel || interview.behaviorReport.confidenceLevel || 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Key Findings */}
+                    {interview.behaviorReport.keyFindings && (
+                      <div className="p-3 bg-white rounded-lg">
+                        <h4 className="font-medium text-blue-800 mb-2">Key Behavioral Insights</h4>
+                        <div className="space-y-1 text-sm text-blue-700">
+                          <div className="flex justify-between">
+                            <span>Emotional State:</span>
+                            <span className="font-medium capitalize">{interview.behaviorReport.keyFindings.mostCommonEmotionalState}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Eye Contact:</span>
+                            <span className="font-medium capitalize">{interview.behaviorReport.keyFindings.eyeContactQuality}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* AI Recommendations */}
+                    {interview.behaviorReport.recommendations && interview.behaviorReport.recommendations.length > 0 && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <h4 className="font-medium text-blue-800 mb-2">Behavioral Recommendations</h4>
+                        <ul className="space-y-1 text-sm text-blue-700">
+                          {interview.behaviorReport.recommendations.slice(0, 3).map((rec, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-blue-500 mt-0.5">•</span>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {/* Analysis Stats */}
+                    {interview.behaviorReport.totalAnalyses && (
+                      <div className="text-xs text-blue-600 text-center">
+                        Based on {interview.behaviorReport.totalAnalyses} behavioral analysis points
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Question-by-Question Feedback */}
         <div className="space-y-6">

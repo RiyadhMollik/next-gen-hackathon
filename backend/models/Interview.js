@@ -61,6 +61,16 @@ const Interview = sequelize.define('Interview', {
   completedAt: {
     type: DataTypes.DATE,
     allowNull: true
+  },
+  integrityReport: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    comment: 'Interview integrity monitoring report with fraud detection data'
+  },
+  behaviorReport: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    comment: 'Behavioral analysis report with AI-generated insights'
   }
 }, {
   tableName: 'interviews',

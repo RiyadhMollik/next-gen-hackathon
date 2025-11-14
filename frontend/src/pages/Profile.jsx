@@ -42,26 +42,44 @@ const Profile = () => {
     dispatch(fetchProfile());
   }, [dispatch]);
 
+  // Helper function to parse JSON fields (handles double-encoded JSON)
+  const parseJSONField = (field) => {
+    if (Array.isArray(field)) return field;
+    if (typeof field === 'string') {
+      try {
+        // First parse - might return a string or array
+        let parsed = JSON.parse(field);
+        // If still a string, try parsing again (double-encoded case)
+        if (typeof parsed === 'string') {
+          parsed = JSON.parse(parsed);
+        }
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  // Helper functions to get correct counts for display
+  const getSkillsCount = () => {
+    return parseJSONField(profile?.skills)?.length || 0;
+  };
+
+  const getWorkExperienceCount = () => {
+    return parseJSONField(profile?.workExperience)?.length || 0;
+  };
+
+  const getProjectsCount = () => {
+    return parseJSONField(profile?.projects)?.length || 0;
+  };
+
+  const getEducationCount = () => {
+    return parseJSONField(profile?.education)?.length || 0;
+  };
+
   useEffect(() => {
     if (profile) {
-      // Helper function to parse JSON fields (handles double-encoded JSON)
-      const parseJSONField = (field) => {
-        if (Array.isArray(field)) return field;
-        if (typeof field === 'string') {
-          try {
-            // First parse - might return a string or array
-            let parsed = JSON.parse(field);
-            // If still a string, try parsing again (double-encoded case)
-            if (typeof parsed === 'string') {
-              parsed = JSON.parse(parsed);
-            }
-            return Array.isArray(parsed) ? parsed : [];
-          } catch (e) {
-            return [];
-          }
-        }
-        return [];
-      };
 
       setFormData({
         fullName: profile.fullName || '',
@@ -394,7 +412,7 @@ const Profile = () => {
                     </span>
                   )}
                   <span className="px-4 py-2 bg-gradient-to-r from-mint-100 to-green-100 text-mint-800 rounded-full text-sm font-bold border border-mint-200 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
-                    🚀 {profile?.skills?.length || 0} Skills
+                    🚀 {getSkillsCount()} Skills
                   </span>
                 </div>
               </div>
@@ -483,8 +501,8 @@ const Profile = () => {
             </h3>
             <span className="text-2xl font-bold text-green-600">
               {(() => {
-                const fields = [profile?.fullName, profile?.email, profile?.phone, profile?.address, profile?.skills?.length, profile?.workExperience?.length, profile?.education?.length];
-                const completed = fields.filter(field => field && (Array.isArray(field) ? field > 0 : true)).length;
+                const fields = [profile?.fullName, profile?.email, profile?.phone, profile?.address, getSkillsCount(), getWorkExperienceCount(), getEducationCount()];
+                const completed = fields.filter(field => field && (typeof field === 'number' ? field > 0 : true)).length;
                 return Math.round((completed / fields.length) * 100);
               })()}%
             </span>
@@ -495,8 +513,8 @@ const Profile = () => {
               className="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
               style={{
                 width: `${(() => {
-                  const fields = [profile?.fullName, profile?.email, profile?.phone, profile?.address, profile?.skills?.length, profile?.workExperience?.length, profile?.education?.length];
-                  const completed = fields.filter(field => field && (Array.isArray(field) ? field > 0 : true)).length;
+                  const fields = [profile?.fullName, profile?.email, profile?.phone, profile?.address, getSkillsCount(), getWorkExperienceCount(), getEducationCount()];
+                  const completed = fields.filter(field => field && (typeof field === 'number' ? field > 0 : true)).length;
                   return Math.round((completed / fields.length) * 100);
                 })()}%`
               }}
@@ -509,9 +527,9 @@ const Profile = () => {
             {[
               { label: 'Basic Info', completed: !!(profile?.fullName && profile?.email) },
               { label: 'Contact', completed: !!(profile?.phone && profile?.address) },
-              { label: 'Skills', completed: !!(profile?.skills?.length > 0) },
-              { label: 'Experience', completed: !!(profile?.workExperience?.length > 0) },
-              { label: 'Education', completed: !!(profile?.education?.length > 0) }
+              { label: 'Skills', completed: !!(getSkillsCount() > 0) },
+              { label: 'Experience', completed: !!(getWorkExperienceCount() > 0) },
+              { label: 'Education', completed: !!(getEducationCount() > 0) }
             ].map((item, index) => (
               <div key={index} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${
                 item.completed 
@@ -537,7 +555,7 @@ const Profile = () => {
                 </svg>
               </div>
               <div>
-                <p className="text-3xl font-bold text-slate-900 group-hover:text-green-600 transition-colors">{profile?.skills?.length || 0}</p>
+                <p className="text-3xl font-bold text-slate-900 group-hover:text-green-600 transition-colors">{getSkillsCount()}</p>
                 <p className="text-slate-600 text-sm font-medium">Skills Mastered</p>
               </div>
             </div>
@@ -552,7 +570,7 @@ const Profile = () => {
               </div>
               <div>
                 <p className="text-3xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
-                  {profile?.workExperience?.length || 0}
+                  {getWorkExperienceCount()}
                 </p>
                 <p className="text-slate-600 text-sm font-medium">Work Experience</p>
               </div>
@@ -568,7 +586,7 @@ const Profile = () => {
               </div>
               <div>
                 <p className="text-3xl font-bold text-slate-900 group-hover:text-mint-600 transition-colors">
-                  {profile?.projects?.length || 0}
+                  {getProjectsCount()}
                 </p>
                 <p className="text-slate-600 text-sm font-medium">Projects</p>
               </div>
@@ -585,7 +603,7 @@ const Profile = () => {
               </div>
               <div>
                 <p className="text-3xl font-bold text-slate-900 group-hover:text-green-600 transition-colors">
-                  {profile?.education?.length || 0}
+                  {getEducationCount()}
                 </p>
                 <p className="text-slate-600 text-sm font-medium">Education</p>
               </div>

@@ -25,6 +25,7 @@ import roadmapRoutes from './routes/roadmapRoutes.js';
 import interviewRoutes from './routes/interviewRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import behaviorAnalysisRoutes from './routes/behaviorAnalysisRoutes.js';
 import cacheRoutes from './routes/cacheRoutes.js';
 import cvGenerationRoutes from './routes/cvGenerationRoutes.js';
 
@@ -84,6 +85,7 @@ app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/behavior-analysis', behaviorAnalysisRoutes);
 app.use('/api/cache', cacheRoutes);
 app.use('/api/cv-generation', cvGenerationRoutes);
 

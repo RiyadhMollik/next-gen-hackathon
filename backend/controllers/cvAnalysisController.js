@@ -63,6 +63,7 @@ export const analyzePDF = async (req, res, next) => {
       targetRoles: analysisResult.targetRoles || user.targetRoles,
       cvText: analysisResult.cvText || user.cvText,
       projectDescriptions: analysisResult.projectDescriptions || user.projectDescriptions,
+      skills: analysisResult.skills || user.skills,
       workExperience: analysisResult.workExperience || user.workExperience,
       projects: analysisResult.projects || user.projects,
       education: analysisResult.education || user.education
@@ -118,6 +119,7 @@ export const analyzeText = async (req, res, next) => {
       targetRoles: analysisResult.targetRoles || user.targetRoles,
       cvText: cvText,
       projectDescriptions: analysisResult.projectDescriptions || user.projectDescriptions,
+      skills: analysisResult.skills || user.skills,
       workExperience: analysisResult.workExperience || user.workExperience,
       projects: analysisResult.projects || user.projects,
       education: analysisResult.education || user.education
@@ -156,16 +158,18 @@ Extract the following fields:
 11. targetRoles - Desired job roles (e.g., "Backend Developer, Frontend Developer")
 12. cvText - Full CV text summary
 13. projectDescriptions - Brief summary of all projects mentioned
-14. workExperience - Array of work experiences in format: [{"position": "Title", "company": "Company Name", "period": "Start - End", "responsibilities": ["bullet point 1", "bullet point 2"]}]
-15. projects - Array of projects in format: [{"name": "Project Name", "period": "Year or Duration", "description": "Brief description", "achievements": ["achievement 1", "achievement 2"]}]
-16. education - Array of education in format: [{"degree": "Degree Name", "school": "Institution Name", "period": "Start - End"}]
+14. skills - Array of technical and soft skills mentioned in the CV (e.g., ["JavaScript", "React", "Python", "Communication", "Leadership"])
+15. workExperience - Array of work experiences in format: [{"position": "Title", "company": "Company Name", "period": "Start - End", "responsibilities": ["bullet point 1", "bullet point 2"]}]
+16. projects - Array of projects in format: [{"name": "Project Name", "period": "Year or Duration", "description": "Brief description", "achievements": ["achievement 1", "achievement 2"]}]
+17. education - Array of education in format: [{"degree": "Degree Name", "school": "Institution Name", "period": "Start - End"}]
 
 Rules:
 - If a field is not found in the CV, return null for that field
-- For arrays (workExperience, projects, education), return empty array [] if nothing found
+- For arrays (skills, workExperience, projects, education), return empty array [] if nothing found
 - Keep responsibilities and achievements concise (1-2 sentences each)
 - Infer experienceLevel based on years of experience: 0-1 years = "Fresher", 1-3 = "Junior", 3-7 = "Mid", 7+ = "Senior"
-- Extract skills mentioned but don't include in response (handled separately)
+- Extract all technical skills (programming languages, frameworks, tools) and soft skills (communication, leadership, etc.)
+- Skills should be individual items, not grouped (e.g., ["JavaScript", "React"] not ["JavaScript, React"])
 
 CV Text:
 ${cvText}
@@ -192,6 +196,9 @@ Return ONLY valid JSON with the structure above. No additional text or explanati
     const result = JSON.parse(completion.choices[0].message.content);
 
     // Convert arrays to JSON strings for database storage
+    if (result.skills && Array.isArray(result.skills)) {
+      result.skills = JSON.stringify(result.skills);
+    }
     if (result.workExperience && Array.isArray(result.workExperience)) {
       result.workExperience = JSON.stringify(result.workExperience);
     }
