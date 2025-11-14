@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5001/api';
 
 console.log('🧪 Testing Admin & Analytics Routes Protection\n');
 console.log('=' .repeat(60));

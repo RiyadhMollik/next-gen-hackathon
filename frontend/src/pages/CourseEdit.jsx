@@ -77,12 +77,12 @@ const CourseEdit = () => {
   const hasContent = course.courseContent && course.courseContent.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-mint-50 to-emerald-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Back Button */}
         <button
           onClick={() => navigate('/courses')}
-          className="flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6"
+          className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-6"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -96,7 +96,7 @@ const CourseEdit = () => {
             {/* Left Content */}
             <div className="lg:col-span-2 space-y-6">
               <div>
-                <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-primary-600 via-indigo-600 to-mint-600 bg-clip-text text-transparent mb-3">
+                <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-mint-600 bg-clip-text text-transparent mb-3">
                   {courseLayout?.name || course.name}
                 </h1>
                 <p className="text-slate-600 text-lg leading-relaxed">
@@ -106,16 +106,16 @@ const CourseEdit = () => {
 
               {/* Info Boxes */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl border border-emerald-200">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <div>
-                      <p className="text-xs text-blue-600 font-semibold">Duration</p>
-                      <p className="text-lg font-bold text-blue-900">2-3 Hours</p>
+                    <div className="text-right">
+                      <p className="text-xs text-emerald-600 font-semibold">Duration</p>
+                      <p className="text-lg font-bold text-emerald-900">2-3 Hours</p>
                     </div>
                   </div>
                 </div>

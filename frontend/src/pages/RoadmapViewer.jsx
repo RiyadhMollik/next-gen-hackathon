@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 import api from '../utils/api';
 
 const RoadmapViewer = () => {
@@ -9,6 +10,8 @@ const RoadmapViewer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({});
+  const [downloading, setDownloading] = useState(false);
+  const roadmapRef = useRef(null);
 
   useEffect(() => {
     fetchRoadmap();
@@ -59,94 +62,47 @@ const RoadmapViewer = () => {
     }
   };
 
-  const downloadRoadmap = () => {
-    if (!roadmap) return;
+  const downloadAsImage = async (format = 'png') => {
+    if (!roadmapRef.current) return;
 
-    const content = generateTextContent();
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${roadmap.targetRole.replace(/\s+/g, '_')}_Roadmap.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const generateTextContent = () => {
-    if (!roadmap) return '';
-
-    const data = roadmap.roadmapData;
-    let content = `CAREER ROADMAP: ${roadmap.targetRole}\n`;
-    content += `Generated on: ${new Date(roadmap.createdAt).toLocaleDateString()}\n`;
-    content += `Timeframe: ${roadmap.timeframe}\n`;
-    content += `Weekly Learning Hours: ${roadmap.weeklyHours}\n`;
-    content += `\n${'='.repeat(60)}\n\n`;
-    
-    content += `OVERVIEW\n`;
-    content += `${data.overview.description}\n`;
-    content += `Total Duration: ${data.overview.totalDuration} (${data.overview.totalWeeks} weeks)\n\n`;
-    
-    content += `KEY MILESTONES:\n`;
-    data.overview.keyMilestones.forEach((milestone, i) => {
-      content += `${i + 1}. ${milestone}\n`;
-    });
-    content += `\n${'='.repeat(60)}\n\n`;
-    
-    data.phases.forEach((phase, idx) => {
-      content += `PHASE ${phase.phaseNumber}: ${phase.phaseName}\n`;
-      content += `Duration: ${phase.duration}\n\n`;
-      
-      content += `OBJECTIVES:\n`;
-      phase.objectives.forEach(obj => content += `  • ${obj}\n`);
-      content += `\n`;
-      
-      content += `TOPICS TO LEARN:\n`;
-      phase.topics.forEach(topic => {
-        content += `  📚 ${topic.name} (${topic.estimatedHours}h)\n`;
-        content += `     ${topic.description}\n`;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(roadmapRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f0fdf4',
+        windowWidth: 1200,
+        windowHeight: roadmapRef.current.scrollHeight
       });
-      content += `\n`;
-      
-      content += `PROJECTS:\n`;
-      phase.projects.forEach(project => {
-        content += `  🚀 ${project.name}\n`;
-        content += `     ${project.description}\n`;
-        content += `     Skills: ${project.skillsPracticed.join(', ')}\n`;
-      });
-      content += `\n`;
-      
-      content += `RESOURCES:\n`;
-      phase.resources.forEach(resource => content += `  • ${resource}\n`);
-      content += `\n${'='.repeat(60)}\n\n`;
-    });
-    
-    content += `APPLICATION TIMELINE\n`;
-    content += `Start applying from week ${data.applicationTimeline.startWeek}\n`;
-    content += `${data.applicationTimeline.recommendation}\n\n`;
-    content += `PREPARATION TIPS:\n`;
-    data.applicationTimeline.preparationTips.forEach(tip => {
-      content += `  • ${tip}\n`;
-    });
-    content += `\n${'='.repeat(60)}\n\n`;
-    
-    content += `SUCCESS METRICS\n`;
-    data.successMetrics.forEach(metric => {
-      content += `  ✓ ${metric}\n`;
-    });
-    
-    return content;
+
+      const image = canvas.toDataURL(`image/${format}`, 0.95);
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `${roadmap.targetRole.replace(/\s+/g, '_')}_Roadmap.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download roadmap:', error);
+      alert('Failed to download roadmap. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-8">
-        <div className="max-w-5xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-white via-mint-50 to-emerald-50 p-8 relative overflow-hidden">
+        {/* Animated Background Orbs */}
+        <div className="absolute top-20 left-20 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-75"></div>
+        
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 font-medium">Loading your roadmap...</p>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto"></div>
+              <p className="mt-4 text-gray-700 font-bold">Loading your roadmap...</p>
             </div>
           </div>
         </div>
@@ -156,15 +112,15 @@ const RoadmapViewer = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-white rounded-3xl shadow-soft border border-slate-100 p-12 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-white via-mint-50 to-emerald-50 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-green-100 p-12 text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Roadmap</h3>
             <p className="text-gray-600 mb-6">{error}</p>
             <button
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium"
+              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg font-bold"
             >
               Back to Dashboard
             </button>
@@ -179,270 +135,377 @@ const RoadmapViewer = () => {
   }
 
   const data = roadmap.roadmapData;
+  const completedPhases = Object.values(progress).filter(Boolean).length;
+  const progressPercentage = (completedPhases / data.phases.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-white via-mint-50 to-emerald-50 p-4 md:p-8 relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="absolute top-20 left-20 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+      <div className="absolute top-40 right-20 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-75"></div>
+      <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-mint-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-150"></div>
+      
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* Fixed Header */}
+        <div className="mb-6">
           <button
             onClick={() => navigate('/dashboard')}
-            className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium mb-4"
+            className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-bold transition-colors duration-200 mb-4"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </button>
 
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-purple-100">
+          {/* Download Buttons */}
+          <div className="flex flex-wrap gap-3 items-center justify-end mb-4">
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-green-100">
+              <button
+                onClick={() => downloadAsImage('png')}
+                disabled={downloading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {downloading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Downloading...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Download PNG</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => downloadAsImage('jpeg')}
+                disabled={downloading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-mint-600 text-white rounded-lg hover:from-emerald-600 hover:to-mint-700 transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {downloading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Downloading...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Download JPG</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Roadmap Content - This will be captured */}
+        <div ref={roadmapRef} className="space-y-6">
+          {/* Header Card */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-green-100">
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex-1">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                  </svg>
-                  Career Roadmap
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-bold mb-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                      </svg>
+                      Career Roadmap
+                    </div>
+                    <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-mint-600 bg-clip-text text-transparent">
+                      {roadmap.targetRole}
+                    </h1>
+                  </div>
                 </div>
-                <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                  {roadmap.targetRole}
-                </h1>
-                <p className="text-gray-600 text-lg">{data.overview.description}</p>
+                <p className="text-gray-600 text-lg font-medium mb-6">{data.overview.description}</p>
                 
-                <div className="flex flex-wrap gap-4 mt-6">
-                  <div className="flex items-center gap-2 text-sm">
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="font-semibold text-gray-700">{data.overview.totalDuration}</span>
+                    <span className="font-bold text-gray-700">{data.overview.totalDuration}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <svg className="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-emerald-50 to-mint-50 rounded-xl border border-emerald-200">
+                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    <span className="font-semibold text-gray-700">{data.phases.length} Phases</span>
+                    <span className="font-bold text-gray-700">{data.phases.length} Phases</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-mint-50 to-green-50 rounded-xl border border-mint-200">
+                    <svg className="w-5 h-5 text-mint-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    <span className="font-semibold text-gray-700">{roadmap.weeklyHours}h/week</span>
+                    <span className="font-bold text-gray-700">{roadmap.weeklyHours}h/week</span>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <button
-                onClick={downloadRoadmap}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl font-medium"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download Roadmap
-              </button>
+            {/* Progress Bar */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-gray-700">Overall Progress</span>
+                <span className="text-sm font-bold text-green-600">{completedPhases} / {data.phases.length} Phases Completed</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-500 via-emerald-600 to-mint-600 transition-all duration-500 rounded-full"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
             </div>
 
             {/* Key Milestones */}
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-lg">
+                <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 Key Milestones
               </h3>
               <div className="grid md:grid-cols-2 gap-3">
                 {data.overview.keyMilestones.map((milestone, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-purple-600 font-bold">{idx + 1}.</span>
-                    <span>{milestone}</span>
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center justify-center text-sm font-bold">
+                      {idx + 1}
+                    </span>
+                    <span className="text-gray-700 font-medium">{milestone}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Vertical Timeline - Phases */}
-        <div className="relative">
-          {/* Vertical Line */}
-          <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-300 via-pink-300 to-blue-300"></div>
+          {/* Learning Phases */}
+          <div className="space-y-6">
+            {data.phases.map((phase, phaseIdx) => {
+              const isCompleted = progress[`phase_${phase.phaseNumber}`];
 
-          {data.phases.map((phase, phaseIdx) => {
-            const isCompleted = progress[`phase_${phase.phaseNumber}`];
-            const isEven = phaseIdx % 2 === 0;
-
-            return (
-              <div key={phase.phaseNumber} className="relative mb-12">
-                {/* Timeline Node */}
-                <div className="absolute left-8 md:left-1/2 -ml-6 md:-ml-8 z-10">
-                  <button
-                    onClick={() => togglePhaseCompletion(phase.phaseNumber)}
-                    className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center font-bold text-xl md:text-2xl transition-all shadow-lg ${
-                      isCompleted
-                        ? 'bg-gradient-to-br from-green-400 to-green-600 text-white'
-                        : 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-600 hover:from-gray-300 hover:to-gray-400'
-                    }`}
-                  >
-                    {isCompleted ? '✓' : phase.phaseNumber}
-                  </button>
-                </div>
-
-                {/* Content Card */}
-                <div className={`ml-24 md:ml-0 md:w-[calc(50%-3rem)] ${isEven ? 'md:mr-auto' : 'md:ml-auto'}`}>
-                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-xl p-6 text-white">
+              return (
+                <div key={phase.phaseNumber} className="relative">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-green-100 overflow-hidden hover:shadow-2xl transition-all duration-300">
                     {/* Phase Header */}
-                    <div className="mb-4">
-                      <div className="text-sm text-purple-300 font-medium mb-1">
-                        Chapter {phase.phaseNumber}
-                      </div>
-                      <h2 className="text-2xl font-bold mb-2">{phase.phaseName}</h2>
-                      <div className="flex items-center gap-4 text-sm text-gray-300">
-                        <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Duration: {phase.duration}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          No. of Topics: {phase.topics.length}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Objectives */}
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-purple-300 mb-2 text-sm">OBJECTIVES:</h4>
-                      <ul className="space-y-1">
-                        {phase.objectives.map((obj, idx) => (
-                          <li key={idx} className="text-sm text-gray-200 flex items-start gap-2">
-                            <span className="text-purple-400">•</span>
-                            <span>{obj}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Topics */}
-                    <div className="space-y-3 mb-4">
-                      {phase.topics.map((topic, topicIdx) => (
-                        <div key={topicIdx} className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20">
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              <div className="w-8 h-8 rounded-full bg-purple-500/30 flex items-center justify-center text-sm font-bold">
-                                {topicIdx + 1}
+                    <div className={`p-6 ${isCompleted ? 'bg-gradient-to-r from-green-500 via-emerald-600 to-mint-600' : 'bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900'} text-white`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <button
+                              onClick={() => togglePhaseCompletion(phase.phaseNumber)}
+                              className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl transition-all shadow-lg ${
+                                isCompleted
+                                  ? 'bg-white text-green-600 hover:scale-110'
+                                  : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
+                              }`}
+                            >
+                              {isCompleted ? '✓' : phase.phaseNumber}
+                            </button>
+                            <div>
+                              <div className="text-sm text-green-200 font-bold mb-1">
+                                Phase {phase.phaseNumber}
                               </div>
-                              <h5 className="font-semibold text-white">{topic.name}</h5>
-                            </div>
-                            <div className="text-xs bg-purple-500/20 px-2 py-1 rounded-full whitespace-nowrap">
-                              {topic.estimatedHours}h
+                              <h2 className="text-2xl font-bold">{phase.phaseName}</h2>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-300 ml-10">{topic.description}</p>
+                          
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span className="font-medium">{phase.duration}</span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <span className="font-medium">{phase.topics.length} Topics</span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                              <span className="font-medium">{phase.projects.length} Projects</span>
+                            </div>
+                          </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
 
-                    {/* Projects */}
-                    {phase.projects.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-semibold text-pink-300 mb-2 text-sm flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    {/* Phase Content */}
+                    <div className="p-6 space-y-6">
+                      {/* Objectives */}
+                      <div>
+                        <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          PROJECTS TO BUILD:
+                          Learning Objectives
                         </h4>
-                        <div className="space-y-2">
-                          {phase.projects.map((project, projIdx) => (
-                            <div key={projIdx} className="bg-pink-500/10 rounded-lg p-3 border border-pink-400/20">
-                              <div className="font-medium text-white mb-1">{project.name}</div>
-                              <div className="text-sm text-gray-300 mb-2">{project.description}</div>
-                              <div className="flex flex-wrap gap-1">
-                                {project.skillsPracticed.map((skill, skillIdx) => (
-                                  <span key={skillIdx} className="text-xs px-2 py-1 bg-pink-500/20 rounded-full text-pink-200">
-                                    {skill}
-                                  </span>
-                                ))}
-                              </div>
+                        <div className="grid md:grid-cols-2 gap-2">
+                          {phase.objectives.map((obj, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-sm text-gray-700 p-2 bg-green-50 rounded-lg">
+                              <span className="text-green-600 font-bold">•</span>
+                              <span className="font-medium">{obj}</span>
                             </div>
                           ))}
                         </div>
                       </div>
-                    )}
 
-                    {/* Resources */}
-                    <div className="border-t border-white/20 pt-4">
-                      <h4 className="font-semibold text-blue-300 mb-2 text-sm">RECOMMENDED RESOURCES:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {phase.resources.map((resource, resIdx) => (
-                          <span key={resIdx} className="text-xs px-3 py-1 bg-blue-500/20 rounded-full text-blue-200 border border-blue-400/30">
-                            {resource}
-                          </span>
-                        ))}
+                      {/* Topics */}
+                      <div>
+                        <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                          Topics to Master
+                        </h4>
+                        <div className="space-y-3">
+                          {phase.topics.map((topic, topicIdx) => (
+                            <div key={topicIdx} className="bg-gradient-to-br from-emerald-50 to-mint-50 rounded-2xl p-4 border border-emerald-200 hover:shadow-lg transition-all duration-200">
+                              <div className="flex items-start justify-between gap-3 mb-2">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-emerald-500 to-mint-600 flex items-center justify-center text-white font-bold shadow-lg">
+                                    {topicIdx + 1}
+                                  </div>
+                                  <h5 className="font-bold text-gray-900">{topic.name}</h5>
+                                </div>
+                                <div className="text-xs bg-emerald-500 text-white px-3 py-1 rounded-full font-bold whitespace-nowrap shadow-md">
+                                  {topic.estimatedHours}h
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-700 ml-13 font-medium">{topic.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Projects */}
+                      {phase.projects.length > 0 && (
+                        <div>
+                          <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <svg className="w-5 h-5 text-mint-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            Projects to Build
+                          </h4>
+                          <div className="space-y-3">
+                            {phase.projects.map((project, projIdx) => (
+                              <div key={projIdx} className="bg-gradient-to-br from-mint-50 to-green-50 rounded-2xl p-4 border border-mint-200 hover:shadow-lg transition-all duration-200">
+                                <div className="flex items-start gap-3 mb-2">
+                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-mint-500 to-green-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                                    {projIdx + 1}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-bold text-gray-900 mb-1">{project.name}</div>
+                                    <div className="text-sm text-gray-700 mb-3 font-medium">{project.description}</div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {project.skillsPracticed.map((skill, skillIdx) => (
+                                        <span key={skillIdx} className="text-xs px-3 py-1 bg-mint-500 text-white rounded-full font-bold shadow-md">
+                                          {skill}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Resources */}
+                      <div className="border-t border-gray-200 pt-4">
+                        <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                          Recommended Resources
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {phase.resources.map((resource, resIdx) => (
+                            <span key={resIdx} className="text-sm px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-xl font-bold border border-green-200">
+                              {resource}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-
-          {/* Final Node - Gift Icon */}
-          <div className="relative">
-            <div className="absolute left-8 md:left-1/2 -ml-6 md:-ml-8 z-10">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-2xl md:text-3xl shadow-lg">
-                🎁
-              </div>
-            </div>
+              );
+            })}
           </div>
-        </div>
 
-        {/* Application Timeline */}
-        <div className="mt-16 bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl shadow-xl p-8 border border-green-200">
-          <div className="flex items-start gap-4">
-            <div className="text-5xl">🎯</div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold text-green-900 mb-3">When to Start Applying</h3>
-              <p className="text-green-800 font-semibold mb-2">
-                Week {data.applicationTimeline.startWeek}: {data.applicationTimeline.recommendation}
-              </p>
-              <div className="mt-4">
-                <h4 className="font-semibold text-green-800 mb-2">Preparation Tips:</h4>
-                <ul className="space-y-2">
-                  {data.applicationTimeline.preparationTips.map((tip, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-green-700">
-                      <svg className="w-5 h-5 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Success Metrics */}
-        <div className="mt-8 bg-white rounded-3xl shadow-xl p-8 border border-slate-200">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            Success Metrics
-          </h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            {data.successMetrics.map((metric, idx) => (
-              <div key={idx} className="flex items-start gap-3 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
-                  {idx + 1}
+          {/* Application Timeline */}
+          <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-mint-50 rounded-3xl shadow-xl p-8 border-2 border-green-200">
+            <div className="flex items-start gap-4">
+              <div className="text-5xl">🎯</div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-green-900 mb-3 flex items-center gap-2">
+                  <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  When to Start Applying
+                </h3>
+                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-green-200">
+                  <p className="text-green-800 font-bold text-lg">
+                    Week {data.applicationTimeline.startWeek}: {data.applicationTimeline.recommendation}
+                  </p>
                 </div>
-                <p className="text-gray-700">{metric}</p>
+                <div>
+                  <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    Preparation Tips
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {data.applicationTimeline.preparationTips.map((tip, idx) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-white/50 backdrop-blur-sm rounded-xl border border-green-200">
+                        <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-green-700 font-medium">{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* Success Metrics */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-green-100">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+              Success Metrics
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {data.successMetrics.map((metric, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200 hover:shadow-lg transition-all duration-200">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center justify-center flex-shrink-0 font-bold shadow-lg">
+                    {idx + 1}
+                  </div>
+                  <p className="text-gray-700 font-medium">{metric}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -6,8 +6,27 @@ from typing import Optional, Dict, List, Any
 import json
 import asyncio
 import re
+import os
 from career_bot_enhanced import CareerBotRAG
 from job_matching import JobMatchingEngine
+
+# Import LangSmith for API tracing
+try:
+    from langsmith import Client
+    from langsmith.run_helpers import traceable
+    LANGSMITH_AVAILABLE = True
+    
+    # Initialize LangSmith for API tracing if configured
+    if os.getenv("LANGCHAIN_TRACING_V2") == "true" and os.getenv("LANGCHAIN_API_KEY"):
+        langsmith_client = Client()
+        print("✅ LangSmith API tracing enabled")
+    else:
+        langsmith_client = None
+        print("⚠️ LangSmith not configured for API tracing")
+except ImportError:
+    LANGSMITH_AVAILABLE = False
+    langsmith_client = None
+    print("⚠️ LangSmith not available for API tracing")
 
 app = FastAPI(title="AI Career Bot API")
 
@@ -17,7 +36,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",  # Frontend dev
         "http://localhost:3000",  # Alternative frontend
-        "http://localhost:5000",  # Backend
+        "http://localhost:5001",  # Backend
         "*"  # Allow all for development
     ],
     allow_credentials=True,
@@ -160,6 +179,7 @@ def root():
     return {"status": "online", "message": "AI Career Bot API"}
 
 @app.post("/chat")
+@traceable(name="api_chat_stream") if LANGSMITH_AVAILABLE else lambda x: x
 async def chat_stream(request: ChatRequest):
     """Stream chat responses with full user profile context and guardrails"""
     try:
@@ -216,6 +236,7 @@ async def chat_stream(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/match-jobs")
+@traceable(name="api_match_jobs") if LANGSMITH_AVAILABLE else lambda x: x
 def match_jobs(request: JobMatchRequest):
     """Find matching jobs for user with detailed scoring and JSON output"""
     try:
@@ -246,6 +267,9 @@ def get_job_match(user_id: int, experience: str = None, track: str = None, top_n
 @app.post("/chat-with-jobs")
 async def chat_with_job_context(request: ChatRequest):
     """Chat with job matching context included - AI discusses your matched jobs with guardrails"""
+@traceable(name="api_chat_with_jobs") if LANGSMITH_AVAILABLE else lambda x: x
+async def chat_with_jobs(request: ChatRequest):
+    """Chat with job matching context included - AI discusses your matched jobs"""
     try:
         # INPUT GUARDRAIL: Validate user query
         is_valid, error_msg = ContentGuardrails.validate_input(request.query)

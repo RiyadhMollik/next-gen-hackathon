@@ -224,7 +224,8 @@ export const getDashboardRecommendations = async (req, res, next) => {
         educationLevel: user.educationLevel,
         department: user.department,
         experienceLevel: user.experienceLevel,
-        preferredCareerTrack: user.preferredCareerTrack
+        preferredCareerTrack: user.preferredCareerTrack,
+        skills: user.skills?.map(s => s.skillName) || []
       },
       stats: {
         totalSkills: user.skills?.length || 0,

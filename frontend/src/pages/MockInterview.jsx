@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../utils/api';
+import FraudDetectionMonitor from '../components/FraudDetectionMonitor';
 
 const MockInterview = () => {
   const { interviewId } = useParams();
@@ -15,6 +16,8 @@ const MockInterview = () => {
   const [answers, setAnswers] = useState([]);
   const [startTime, setStartTime] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
+  const [fraudDetectionEnabled, setFraudDetectionEnabled] = useState(true);
+  const [userId, setUserId] = useState(null);
   
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -50,6 +53,7 @@ const MockInterview = () => {
       }
       
       setInterview(interviewData);
+      setUserId(interviewData.userId);
       
       // Start the interview
       await api.put(`/interviews/${interviewId}/start`);
@@ -239,8 +243,8 @@ const MockInterview = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                {currentQuestion.category}
+                            <div className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                Mock Interview #{interview.id}
               </div>
               <div className={`px-4 py-2 rounded-full text-sm font-medium ${
                 currentQuestion.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
@@ -294,6 +298,38 @@ const MockInterview = () => {
                   </div>
                 </div>
               )}
+              
+              {/* Fraud Detection Monitor Overlay */}
+              {cameraReady && fraudDetectionEnabled && userId && (
+                <FraudDetectionMonitor
+                  interviewId={interviewId}
+                  userId={userId}
+                  videoRef={videoRef}
+                  isActive={true}
+                />
+              )}
+            </div>
+            
+            {/* Fraud Detection Toggle */}
+            <div className="mt-4 flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                </svg>
+                <span className="text-sm font-medium text-gray-700">Fraud Detection</span>
+              </div>
+              <button
+                onClick={() => setFraudDetectionEnabled(!fraudDetectionEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  fraudDetectionEnabled ? 'bg-indigo-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    fraudDetectionEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
 
@@ -305,7 +341,7 @@ const MockInterview = () => {
                 <button
                   onClick={readQuestion}
                   disabled={isSpeaking}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-200 transition-colors disabled:opacity-50"
                 >
                   {isSpeaking ? (
                     <>
@@ -352,7 +388,7 @@ const MockInterview = () => {
                 className={`flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
                   isRecording 
                     ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }`}
               >
                 {isRecording ? (

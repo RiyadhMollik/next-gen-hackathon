@@ -368,6 +368,38 @@ export const deleteCourse = async (req, res) => {
   }
 };
 
+// Update completed chapters for a course
+export const updateCompletedChapters = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { completedChapters } = req.body;
+
+    const course = await Course.findOne({
+      where: { id: courseId, userId: req.userId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    // Update completed chapters
+    course.completedChapters = completedChapters;
+    await course.save();
+
+    res.json({
+      success: true,
+      message: 'Progress updated successfully',
+      completedChapters: course.completedChapters
+    });
+  } catch (error) {
+    console.error('Update completed chapters error:', error);
+    res.status(500).json({
+      message: 'Failed to update progress',
+      error: error.message
+    });
+  }
+};
+
 // Helper function to generate banner image
 const generateBannerImage = async (prompt) => {
   try {

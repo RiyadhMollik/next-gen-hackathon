@@ -10,12 +10,23 @@ from mysql.connector import Error
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.tools import tool
+from langchain_core.tracers import LangChainTracer
+from langchain_core.callbacks import CallbackManager
 
 # LangGraph imports
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
+
+# LangSmith imports
+try:
+    from langsmith import Client
+    from langsmith.run_helpers import traceable
+    LANGSMITH_AVAILABLE = True
+except ImportError:
+    LANGSMITH_AVAILABLE = False
+    print("⚠️ LangSmith not available. Install with: pip install langsmith")
 
 # Load environment variables
 load_dotenv()
@@ -44,6 +55,9 @@ class CareerBotRAG:
         # Initialize thread ID for conversation memory
         self.thread_id = str(uuid.uuid4())
         print(f"🔗 Thread ID: {self.thread_id}")
+        
+        # Initialize LangSmith tracing
+        self._setup_langsmith_tracing()
         
         # Use profile data if provided, otherwise fetch from database
         if user_profile:
@@ -110,6 +124,60 @@ class CareerBotRAG:
         print("="*70)
         print("✅ Career Bot initialization complete!")
         print("💡 Ready to provide personalized career guidance with streaming!\n")
+    
+    def _setup_langsmith_tracing(self):
+        """
+        Initialize LangSmith tracing for monitoring and debugging LangGraph workflows.
+        """
+        print("\n🔍 Setting up LangSmith Tracing...")
+        
+        if not LANGSMITH_AVAILABLE:
+            print("⚠️ LangSmith not available - tracing disabled")
+            self.langsmith_client = None
+            return
+        
+        # Check for required environment variables
+        langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
+        langchain_tracing = os.getenv("LANGCHAIN_TRACING_V2", "false").lower()
+        langchain_project = os.getenv("LANGCHAIN_PROJECT", "career-bot-hackathon")
+        
+        if not langchain_api_key or langchain_tracing != "true":
+            print("⚠️ LangSmith tracing not configured - set LANGCHAIN_API_KEY and LANGCHAIN_TRACING_V2=true")
+            self.langsmith_client = None
+            return
+        
+        try:
+            # Initialize LangSmith client
+            self.langsmith_client = Client(
+                api_key=langchain_api_key,
+                api_url=os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+            )
+            
+            # Set environment variables for automatic tracing
+            os.environ["LANGCHAIN_TRACING_V2"] = "true"
+            os.environ["LANGCHAIN_API_KEY"] = langchain_api_key
+            os.environ["LANGCHAIN_PROJECT"] = langchain_project
+            
+            print(f"✓ LangSmith tracing enabled for project: {langchain_project}")
+            print(f"  📊 Dashboard: https://smith.langchain.com/projects/{langchain_project}")
+            
+            # Create project if it doesn't exist
+            try:
+                self.langsmith_client.create_project(
+                    project_name=langchain_project,
+                    description="Career Bot LangGraph Workflow Tracing - Next Gen Hackathon"
+                )
+                print(f"✓ Created LangSmith project: {langchain_project}")
+            except Exception as e:
+                # Project might already exist, which is fine
+                if "already exists" in str(e).lower():
+                    print(f"✓ Using existing LangSmith project: {langchain_project}")
+                else:
+                    print(f"⚠️ Project creation note: {e}")
+                    
+        except Exception as e:
+            print(f"❌ Failed to initialize LangSmith: {e}")
+            self.langsmith_client = None
     
     def _fetch_user_skills(self, user_id: int) -> List[Dict]:
         """
@@ -331,6 +399,7 @@ class CareerBotRAG:
         
         # Create a tool for career knowledge search
         @tool
+        @traceable(name="search_career_knowledge_tool") if LANGSMITH_AVAILABLE else lambda x: x
         def search_career_knowledge(query: str) -> str:
             """
             Search the career guidance and employment knowledge base across 10 categories:
@@ -358,6 +427,7 @@ class CareerBotRAG:
         
         # Create a tool to get user profile
         @tool
+        @traceable(name="get_user_skills_tool") if LANGSMITH_AVAILABLE else lambda x: x
         def get_user_skills() -> str:
             """
             Get the current user's complete profile including personal info, skills, 
@@ -491,6 +561,7 @@ STRICT RULE: Only answer career, job, and professional development questions. Po
         # Compile with memory checkpointing
         self.graph = graph.compile(checkpointer=self.memory)
     
+    @traceable(name="rag_retrieval") if LANGSMITH_AVAILABLE else lambda x: x
     def _retrieve_relevant_context(self, query: str, top_k: int = 3) -> str:
         """
         Retrieve the most relevant chunks from the knowledge base using OpenAI embeddings.
@@ -529,6 +600,74 @@ STRICT RULE: Only answer career, job, and professional development questions. Po
         
         return context
     
+    def _log_query_to_langsmith(self, query: str):
+        """
+        Log query metadata to LangSmith for enhanced tracing and analytics.
+        """
+        try:
+            if self.langsmith_client and LANGSMITH_AVAILABLE:
+                # Create custom metadata for the query
+                metadata = {
+                    "user_id": self.user_id,
+                    "thread_id": self.thread_id,
+                    "query_type": "career_guidance",
+                    "has_user_profile": bool(self.user_profile),
+                    "user_skills_count": len(self.user_skills),
+                    "timestamp": str(uuid.uuid4())
+                }
+                
+                # Add user context metadata if available
+                if self.user_profile:
+                    metadata.update({
+                        "user_experience_level": self.user_profile.get("experienceLevel"),
+                        "user_career_track": self.user_profile.get("preferredCareerTrack"),
+                        "user_education": self.user_profile.get("educationLevel")
+                    })
+                
+                print(f"📊 LangSmith metadata: User {self.user_id}, Thread {self.thread_id[:8]}...")
+        except Exception as e:
+            print(f"⚠️ LangSmith logging failed: {e}")
+    
+    def _create_langsmith_run_context(self, query: str) -> dict:
+        """
+        Create comprehensive run context for LangSmith tracing.
+        """
+        if not (self.langsmith_client and LANGSMITH_AVAILABLE):
+            return {}
+            
+        try:
+            # Create comprehensive metadata
+            run_context = {
+                "tags": ["career-bot", "langgraph", "rag", "streaming"],
+                "metadata": {
+                    "user_id": str(self.user_id) if self.user_id else "anonymous",
+                    "thread_id": self.thread_id,
+                    "query_length": len(query),
+                    "query_tokens": len(query.split()),
+                    "knowledge_base_chunks": len(self.knowledge_chunks),
+                    "has_user_context": bool(self.user_profile or self.user_skills),
+                    "user_skills_count": len(self.user_skills)
+                }
+            }
+            
+            # Add user-specific metadata if available
+            if self.user_profile:
+                user_meta = {
+                    "experience_level": self.user_profile.get("experienceLevel"),
+                    "career_track": self.user_profile.get("preferredCareerTrack"), 
+                    "education_level": self.user_profile.get("educationLevel"),
+                    "has_cv": bool(self.user_profile.get("cvText")),
+                    "has_projects": bool(self.user_profile.get("projects")),
+                    "has_work_experience": bool(self.user_profile.get("workExperience"))
+                }
+                run_context["metadata"].update(user_meta)
+            
+            return run_context
+        except Exception as e:
+            print(f"⚠️ Failed to create LangSmith context: {e}")
+            return {}
+    
+    @traceable(name="career_bot_query") if LANGSMITH_AVAILABLE else lambda x: x
     def ask_stream(self, query: str):
         """
         Answer a user question using RAG with streaming response (like ChatGPT).
@@ -542,6 +681,9 @@ STRICT RULE: Only answer career, job, and professional development questions. Po
         print(f"\n💬 User Question: {query}")
         print("-"*70)
         print("\n🤖 Career Bot: ", end="", flush=True)
+        
+        # Add LangSmith tracing metadata
+        self._log_query_to_langsmith(query)
         
         try:
             # Configuration for thread-based memory
@@ -589,11 +731,17 @@ STRICT RULE: Only answer career, job, and professional development questions. Po
             full_response += chunk
         return full_response
     
+    @traceable(name="interactive_session") if LANGSMITH_AVAILABLE else lambda x: x
     def interactive_mode(self):
         """Run the career bot in interactive mode with streaming responses."""
         print("\n" + "="*70)
         print("🎯 AI-Powered Career Bot - Interactive Mode with Streaming")
         print("="*70)
+        
+        # Log session start to LangSmith
+        if self.langsmith_client and LANGSMITH_AVAILABLE:
+            session_context = self._create_langsmith_run_context("session_start")
+            print(f"📊 LangSmith session tracking enabled: {os.getenv('LANGCHAIN_PROJECT')}")
         
         if self.user_id and self.user_skills:
             print(f"👤 User ID: {self.user_id}")

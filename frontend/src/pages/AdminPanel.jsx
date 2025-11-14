@@ -235,12 +235,12 @@ const AdminPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-white via-mint-50 to-emerald-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Admin Panel</h1>
-          <p className="text-lg text-gray-600">Manage platform content and monitor activity</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-mint-600 bg-clip-text text-transparent mb-2">Admin Panel</h1>
+          <p className="text-lg text-slate-600">Manage platform content and monitor activity</p>
         </div>
 
         {/* Tabs */}
@@ -258,8 +258,8 @@ const AdminPanel = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 inline-flex items-center gap-2 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                   }`}
                 >
                   <span>{tab.icon}</span>
@@ -272,8 +272,8 @@ const AdminPanel = () => {
           <div className="p-6">
             {loading ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+                <p className="mt-4 text-slate-600">Loading...</p>
               </div>
             ) : (
               <>
@@ -281,7 +281,7 @@ const AdminPanel = () => {
                 {activeTab === 'stats' && stats && (
                   <div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white">
                         <p className="text-sm opacity-90">Total Users</p>
                         <p className="text-4xl font-bold mt-2">{stats.totalUsers.toLocaleString()}</p>
                         <p className="text-sm mt-2 opacity-75">+{stats.recentActivity.newUsers} this week</p>
@@ -291,20 +291,20 @@ const AdminPanel = () => {
                         <p className="text-4xl font-bold mt-2">{stats.totalJobs.toLocaleString()}</p>
                         <p className="text-sm mt-2 opacity-75">+{stats.recentActivity.newJobs} this week</p>
                       </div>
-                      <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-mint-500 to-mint-600 rounded-xl p-6 text-white">
                         <p className="text-sm opacity-90">Learning Resources</p>
                         <p className="text-4xl font-bold mt-2">{stats.totalResources.toLocaleString()}</p>
                       </div>
-                      <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl p-6 text-white">
                         <p className="text-sm opacity-90">Courses Created</p>
                         <p className="text-4xl font-bold mt-2">{stats.totalCourses.toLocaleString()}</p>
                       </div>
-                      <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-emerald-600 to-mint-700 rounded-xl p-6 text-white">
                         <p className="text-sm opacity-90">Interviews</p>
                         <p className="text-4xl font-bold mt-2">{stats.totalInterviews.toLocaleString()}</p>
                         <p className="text-sm mt-2 opacity-75">{stats.completedInterviews} completed</p>
                       </div>
-                      <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-mint-600 to-green-700 rounded-xl p-6 text-white">
                         <p className="text-sm opacity-90">Platform Activity</p>
                         <p className="text-2xl font-bold mt-2">Active</p>
                         <p className="text-sm mt-2 opacity-75">All systems operational</p>
@@ -314,7 +314,7 @@ const AdminPanel = () => {
                     <div className="flex gap-4">
                       <button
                         onClick={() => navigate('/analytics')}
-                        className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl py-4 px-6 font-semibold hover:shadow-lg transition-all"
+                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl py-4 px-6 font-semibold hover:shadow-lg transition-all"
                       >
                         📈 View Full Analytics Dashboard
                       </button>
@@ -332,11 +332,11 @@ const AdminPanel = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && fetchJobs()}
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
                       <button
                         onClick={() => openJobModal()}
-                        className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                        className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -352,14 +352,14 @@ const AdminPanel = () => {
                               <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
                               <p className="text-gray-600 mt-1">{job.company} • {job.location}</p>
                               <div className="flex gap-2 mt-3">
-                                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">{job.jobType}</span>
+                                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium">{job.jobType}</span>
                                 <span className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-medium">{job.experienceLevel}</span>
                               </div>
                             </div>
                             <div className="flex gap-2 ml-4">
                               <button
                                 onClick={() => openJobModal(job)}
-                                className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+                                className="px-4 py-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-colors font-medium"
                               >
                                 Edit
                               </button>
@@ -396,7 +396,7 @@ const AdminPanel = () => {
                       />
                       <button
                         onClick={() => openResourceModal()}
-                        className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                        className="px-6 py-3 bg-mint-600 text-white rounded-xl hover:bg-mint-700 transition-colors font-medium flex items-center gap-2"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -412,7 +412,7 @@ const AdminPanel = () => {
                               <h3 className="text-lg font-bold text-gray-900">{resource.title}</h3>
                               <p className="text-sm text-gray-600 mt-2 line-clamp-2">{resource.description}</p>
                               <div className="flex gap-2 mt-3">
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">{resource.type}</span>
+                                <span className="px-2 py-1 bg-mint-100 text-mint-700 rounded text-xs font-medium">{resource.type}</span>
                                 {resource.difficulty && (
                                   <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">{resource.difficulty}</span>
                                 )}
@@ -421,7 +421,7 @@ const AdminPanel = () => {
                             <div className="flex flex-col gap-2 ml-4">
                               <button
                                 onClick={() => openResourceModal(resource)}
-                                className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                                className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-colors text-sm font-medium"
                               >
                                 Edit
                               </button>
@@ -454,7 +454,7 @@ const AdminPanel = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && fetchUsers()}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
                     </div>
                     <div className="overflow-x-auto">
@@ -474,7 +474,7 @@ const AdminPanel = () => {
                               <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.fullName}</td>
                               <td className="px-4 py-3 text-sm text-gray-700">{user.email}</td>
                               <td className="px-4 py-3 text-sm">
-                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
                                   {user.experienceLevel || 'N/A'}
                                 </span>
                               </td>
@@ -594,9 +594,9 @@ const AdminPanel = () => {
                   />
                   <div className="flex flex-wrap gap-2 mt-2">
                     {jobForm.requiredSkills.map((skill, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm flex items-center gap-2">
+                      <span key={idx} className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm flex items-center gap-2">
                         {skill}
-                        <button type="button" onClick={() => removeSkill(skill)} className="text-indigo-900 hover:text-indigo-700">×</button>
+                        <button type="button" onClick={() => removeSkill(skill)} className="text-emerald-900 hover:text-emerald-700">×</button>
                       </span>
                     ))}
                   </div>
@@ -626,7 +626,7 @@ const AdminPanel = () => {
                 <div className="flex gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                    className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                   >
                     {editingJob ? 'Update Job' : 'Create Job'}
                   </button>
@@ -731,7 +731,7 @@ const AdminPanel = () => {
                 <div className="flex gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                    className="flex-1 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                   >
                     {editingResource ? 'Update Resource' : 'Create Resource'}
                   </button>

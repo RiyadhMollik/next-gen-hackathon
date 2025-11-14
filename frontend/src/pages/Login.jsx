@@ -29,21 +29,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-indigo-50 to-mint-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-mint-50 to-emerald-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-soft"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-soft" style={{animationDelay: '1s'}}></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-soft"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-soft" style={{animationDelay: '1s'}}></div>
       
       <div className="max-w-md w-full relative z-10 animate-scale-in">
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-soft-lg border border-slate-100 p-8 md:p-10">
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-green-100 p-8 md:p-10">
           {/* Logo/Icon */}
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-soft transform hover:scale-110 transition-transform duration-300">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl md:text-4xl font-display font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
               Welcome Back!
             </h1>
             <p className="text-slate-600 font-medium">Sign in to continue your journey</p>
@@ -75,7 +75,7 @@ const Login = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-400 hover:border-slate-300 outline-none transition-all text-slate-900 placeholder:text-slate-400"
+                  className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 hover:border-green-300 outline-none transition-all duration-300 text-slate-900 placeholder:text-slate-400"
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -98,7 +98,7 @@ const Login = () => {
                   onChange={handleChange}
                   required
                   minLength={6}
-                  className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-400 hover:border-slate-300 outline-none transition-all text-slate-900 placeholder:text-slate-400"
+                  className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 hover:border-green-300 outline-none transition-all duration-300 text-slate-900 placeholder:text-slate-400"
                   placeholder="••••••••"
                 />
               </div>
@@ -107,7 +107,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-semibold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-soft-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2 shadow-soft"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2 shadow-lg"
             >
               {loading ? (
                 <>
@@ -133,7 +133,7 @@ const Login = () => {
               Don't have an account?{' '}
               <Link 
                 to="/register" 
-                className="font-semibold text-primary-600 hover:text-indigo-600 transition-colors"
+                className="font-semibold text-green-600 hover:text-emerald-600 transition-colors"
               >
                 Sign up now
               </Link>

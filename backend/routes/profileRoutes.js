@@ -7,34 +7,148 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticate);
 
-// @route   GET /api/profile/me
-// @desc    Get current user profile with skills
-// @access  Private
+/**
+ * @swagger
+ * /profile/me:
+ *   get:
+ *     summary: Get current user profile with skills
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile with skills
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 skills:
+ *                   type: array
+ *   put:
+ *     summary: Update current user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *               educationLevel:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *               experienceLevel:
+ *                 type: string
+ *               preferredCareerTrack:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ */
 router.get('/me', getProfile);
-
-// @route   PUT /api/profile/me
-// @desc    Update current user profile
-// @access  Private
 router.put('/me', updateProfile);
 
-// @route   GET /api/profile
-// @desc    Get user profile with skills (alias)
-// @access  Private
+/**
+ * @swagger
+ * /profile:
+ *   get:
+ *     summary: Get user profile (alias)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile
+ *   put:
+ *     summary: Update user profile (alias)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *               educationLevel:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *               experienceLevel:
+ *                 type: string
+ *               preferredCareerTrack:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ */
 router.get('/', getProfile);
-
-// @route   PUT /api/profile
-// @desc    Update user profile (alias)
-// @access  Private
 router.put('/', updateProfile);
 
-// @route   POST /api/profile/skills
-// @desc    Add a skill to user profile
-// @access  Private
+/**
+ * @swagger
+ * /profile/skills:
+ *   post:
+ *     summary: Add a skill to user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - skillName
+ *               - proficiencyLevel
+ *             properties:
+ *               skillName:
+ *                 type: string
+ *                 example: React
+ *               proficiencyLevel:
+ *                 type: string
+ *                 enum: [Beginner, Intermediate, Advanced, Expert]
+ *                 example: Intermediate
+ *     responses:
+ *       201:
+ *         description: Skill added successfully
+ */
 router.post('/skills', addSkill);
 
-// @route   DELETE /api/profile/skills/:id
-// @desc    Delete a skill from user profile
-// @access  Private
+/**
+ * @swagger
+ * /profile/skills/{id}:
+ *   delete:
+ *     summary: Delete a skill from user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Skill deleted successfully
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ */
 router.delete('/skills/:id', deleteSkill);
 
 export default router;

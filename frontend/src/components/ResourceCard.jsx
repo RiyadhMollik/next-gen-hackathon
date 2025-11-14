@@ -37,17 +37,24 @@ const ResourceCard = ({ resource }) => {
       : [];
 
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100 card-hover transform hover:-translate-y-2 animate-fade-in">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-primary-600 transition-colors line-clamp-2">{resource.title}</h3>
-          <div className="flex items-center space-x-2 text-gray-600">
-            {getPlatformIcon(resource.platform)}
-            <span className="font-medium">{resource.platform}</span>
+    <div className="group bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-8 border border-green-100/50 transform hover:-translate-y-2 hover:scale-105 animate-fade-in relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-200/20 to-emerald-200/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+      <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-mint-200/20 to-green-200/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+      
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex-1">
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-green-600 transition-colors line-clamp-2 leading-tight">{resource.title}</h3>
+            <div className="flex items-center space-x-3 text-slate-600">
+              <div className="p-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                {getPlatformIcon(resource.platform)}
+              </div>
+              <span className="font-semibold text-lg">{resource.platform}</span>
+            </div>
           </div>
-        </div>
-        <span className={`px-4 py-2 rounded-full text-xs font-semibold ml-3 ${getCostBadge(resource.cost)} transform hover:scale-105 transition-transform whitespace-nowrap`}>
-          {resource.cost}
+          <span className={`px-6 py-3 rounded-2xl text-sm font-bold ml-4 ${getCostBadge(resource.cost)} transform hover:scale-110 hover:-translate-y-1 transition-all duration-300 whitespace-nowrap shadow-lg`}>
+            {resource.cost}
         </span>
       </div>
 
@@ -110,6 +117,7 @@ const ResourceCard = ({ resource }) => {
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 };

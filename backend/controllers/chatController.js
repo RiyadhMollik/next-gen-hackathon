@@ -139,7 +139,7 @@ export const chatWithBot = async (req, res) => {
 // @access  Public
 export const chatbotHealth = async (req, res) => {
   try {
-    const response = await axios.get(`${CHATBOT_API_URL}/`, { timeout: 5000 });
+    const response = await axios.get(`${CHATBOT_API_URL}/`, { timeout: 5001 });
     res.json({ 
       status: 'online', 
       chatbotStatus: response.data 
