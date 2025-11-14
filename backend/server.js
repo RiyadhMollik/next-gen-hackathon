@@ -22,6 +22,7 @@ import roadmapRoutes from './routes/roadmapRoutes.js';
 import interviewRoutes from './routes/interviewRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import behaviorAnalysisRoutes from './routes/behaviorAnalysisRoutes.js';
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/behavior-analysis', behaviorAnalysisRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

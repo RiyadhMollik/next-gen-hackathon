@@ -7,7 +7,7 @@ def create_connection():
             host="localhost",
             user="root",
             password="",
-            database="hackathon_db",
+            database="hack",
             port=3306
         )
 

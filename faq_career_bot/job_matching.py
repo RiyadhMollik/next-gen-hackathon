@@ -19,8 +19,8 @@ class JobMatchingEngine:
             "host": "localhost",
             "user": "root",
             "password": "",
-            "database": "hackathon_db",
-            "port": 3306
+            "database": "youth_employment_db",
+            "port": 3307
         }
         
         # Skill proficiency weights

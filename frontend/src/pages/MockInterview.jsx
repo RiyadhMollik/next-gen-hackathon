@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { useInterviewIntegrity } from '../utils/interviewIntegrity';
+import { useBehaviorAnalysis } from '../utils/behaviorAnalysis';
 
 const MockInterview = () => {
   const { interviewId } = useParams();
@@ -21,6 +23,28 @@ const MockInterview = () => {
   const recognitionRef = useRef(null);
   const synthRef = useRef(window.speechSynthesis);
 
+  // Interview integrity and fraud detection
+  const {
+    integrityData,
+    isActive,
+    startIntegrityMonitoring,
+    stopIntegrityMonitoring,
+    getIntegrityReport
+  } = useInterviewIntegrity();
+
+  // Behavior analysis
+  const {
+    behaviorData,
+    isAnalyzing,
+    startBehaviorAnalysis,
+    stopBehaviorAnalysis,
+    getBehaviorReport
+  } = useBehaviorAnalysis();
+  const getFraudReport = () => ({});
+  const resetFraudDetection = () => {};
+
+
+
   useEffect(() => {
     fetchInterview();
     initializeCamera();
@@ -32,31 +56,69 @@ const MockInterview = () => {
         recognitionRef.current.stop();
       }
       synthRef.current.cancel();
+      // Fraud detection cleanup temporarily disabled
     };
   }, [interviewId]);
 
   const fetchInterview = async () => {
     try {
       setLoading(true);
+      console.log('Fetching interview with ID:', interviewId);
+      
       const response = await api.get(`/interviews/${interviewId}`);
+      console.log('Interview response:', response.data);
+      
+      // Check if response has the expected structure
+      if (!response.data || !response.data.interview) {
+        throw new Error('Invalid interview data structure');
+      }
       
       // Parse questions if they are stored as a string
       const interviewData = response.data.interview;
+      
       if (typeof interviewData.questions === 'string') {
-        interviewData.questions = JSON.parse(interviewData.questions);
-      }
-      if (typeof interviewData.userSkills === 'string') {
-        interviewData.userSkills = JSON.parse(interviewData.userSkills);
+        try {
+          interviewData.questions = JSON.parse(interviewData.questions);
+        } catch (parseError) {
+          console.error('Failed to parse questions:', parseError);
+          throw new Error('Invalid interview questions format');
+        }
       }
       
+      if (typeof interviewData.userSkills === 'string') {
+        try {
+          interviewData.userSkills = JSON.parse(interviewData.userSkills);
+        } catch (parseError) {
+          console.warn('Failed to parse user skills, using empty array:', parseError);
+          interviewData.userSkills = [];
+        }
+      }
+      
+      // Ensure questions is an array
+      if (!Array.isArray(interviewData.questions)) {
+        throw new Error('Interview questions must be an array');
+      }
+      
+      if (interviewData.questions.length === 0) {
+        throw new Error('No interview questions found');
+      }
+      
+      console.log('Setting interview data:', interviewData);
       setInterview(interviewData);
       
       // Start the interview
-      await api.put(`/interviews/${interviewId}/start`);
-      setStartTime(Date.now());
+      try {
+        await api.put(`/interviews/${interviewId}/start`);
+        setStartTime(Date.now());
+        console.log('Interview started successfully');
+      } catch (startError) {
+        console.warn('Failed to start interview session:', startError);
+        // Don't fail the whole component if starting fails
+        setStartTime(Date.now());
+      }
     } catch (error) {
       console.error('Failed to fetch interview:', error);
-      alert('Failed to load interview');
+      alert(`Failed to load interview: ${error.message}`);
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -72,6 +134,17 @@ const MockInterview = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         setCameraReady(true);
+        
+        // Start interview integrity monitoring and behavior analysis
+        setTimeout(async () => {
+          try {
+            await startIntegrityMonitoring(videoRef.current);
+            await startBehaviorAnalysis(videoRef.current);
+            console.log('Interview monitoring systems activated');
+          } catch (error) {
+            console.warn('Failed to start interview monitoring:', error);
+          }
+        }, 1000); // Small delay to ensure video is fully loaded
       }
     } catch (error) {
       console.error('Camera access error:', error);
@@ -80,6 +153,10 @@ const MockInterview = () => {
   };
 
   const stopCamera = () => {
+    // Stop integrity monitoring and behavior analysis
+    stopIntegrityMonitoring();
+    stopBehaviorAnalysis();
+    
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach(track => track.stop());
@@ -187,9 +264,29 @@ const MockInterview = () => {
     
     try {
       setLoading(true);
-      const response = await api.post(`/interviews/${interviewId}/complete`, { duration });
+      
+      // Stop monitoring systems and collect reports
+      let integrityReport = null;
+      let behaviorReport = null;
+      
+      if (isActive) {
+        stopIntegrityMonitoring();
+        integrityReport = getIntegrityReport();
+      }
+      
+      if (isAnalyzing) {
+        stopBehaviorAnalysis();
+        behaviorReport = getBehaviorReport();
+      }
+      
+      const response = await api.post(`/interviews/${interviewId}/complete`, { 
+        duration,
+        integrityReport,
+        behaviorReport
+      });
       
       if (response.data.success) {
+        stopCamera();
         navigate(`/interview/${interviewId}/feedback`);
       }
     } catch (error) {
@@ -218,7 +315,33 @@ const MockInterview = () => {
   }
 
   if (!interview) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-700 font-medium">Loading interview...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if questions exist and are valid
+  if (!interview.questions || !Array.isArray(interview.questions) || interview.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Interview Data Error</h2>
+          <p className="text-gray-600 mb-4">No interview questions found.</p>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const currentQuestion = interview.questions[currentQuestionIndex];
@@ -263,6 +386,8 @@ const MockInterview = () => {
           </div>
         </div>
 
+        {/* Fraud detection temporarily disabled for debugging */}
+
         <div className="grid md:grid-cols-2 gap-6">
           {/* Camera Feed */}
           <div className="bg-white rounded-3xl shadow-xl p-6">
@@ -284,6 +409,80 @@ const MockInterview = () => {
                 muted
                 className="w-full h-full object-cover transform scale-x-[-1]"
               />
+              
+              {/* Debug Panel - Remove in production */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="absolute top-4 left-4 bg-red-800/80 rounded-lg p-2">
+                  <div className="text-white text-xs space-y-1">
+                    <div>Debug Panel</div>
+                    <button 
+                      onClick={() => window.dispatchEvent(new Event('blur'))}
+                      className="bg-red-600 px-2 py-1 rounded text-xs"
+                    >
+                      Test Window Blur
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const event = new KeyboardEvent('keydown', { key: 'F12' });
+                        document.dispatchEvent(event);
+                      }}
+                      className="bg-red-600 px-2 py-1 rounded text-xs"
+                    >
+                      Test F12 Key
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Interview Integrity Monitoring Display */}
+              {(isActive || isAnalyzing) && (
+                <div className="absolute top-4 right-4 bg-black/80 rounded-lg p-3 min-w-64">
+                  <div className="text-white space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className={`w-2 h-2 rounded-full ${(isActive && isAnalyzing) ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+                      <span>Interview Monitoring Active</span>
+                    </div>
+                    
+                    {integrityData && (
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span>Integrity Score:</span>
+                          <span className={`font-bold ${
+                            integrityData.integrityScore >= 80 ? 'text-green-400' : 
+                            integrityData.integrityScore >= 60 ? 'text-yellow-400' : 'text-red-400'
+                          }`}>
+                            {integrityData.integrityScore}/100
+                          </span>
+                        </div>
+                        {integrityData.violations?.length > 0 && (
+                          <div className="text-red-400">
+                            <div>Violations: {integrityData.violations.length}</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {behaviorData && (
+                      <div className="space-y-1 text-xs border-t border-gray-600 pt-2">
+                        <div className="flex justify-between">
+                          <span>Attention:</span>
+                          <span className="font-bold text-blue-400">{behaviorData.attentionScore}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Engagement:</span>
+                          <span className={`font-bold capitalize ${
+                            behaviorData.engagementLevel === 'high' ? 'text-green-400' : 
+                            behaviorData.engagementLevel === 'medium' ? 'text-yellow-400' : 'text-red-400'
+                          }`}>
+                            {behaviorData.engagementLevel}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               {!cameraReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
                   <div className="text-center text-white">
@@ -296,6 +495,123 @@ const MockInterview = () => {
               )}
             </div>
           </div>
+
+          {/* Interview Integrity & Behavior Dashboard */}
+          {(isActive || isAnalyzing) && (integrityData || behaviorData) && (
+            <div className="bg-white rounded-3xl shadow-xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Interview Analysis</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Integrity Monitoring */}
+                {integrityData && (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${
+                        integrityData.integrityScore >= 80 ? 'bg-green-500' : 
+                        integrityData.integrityScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}></div>
+                      Interview Integrity
+                    </h4>
+                    
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Overall Score</span>
+                        <span className={`text-lg font-bold ${
+                          integrityData.integrityScore >= 80 ? 'text-green-600' : 
+                          integrityData.integrityScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+                        }`}>
+                          {integrityData.integrityScore}/100
+                        </span>
+                      </div>
+                      
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            integrityData.integrityScore >= 80 ? 'bg-green-500' : 
+                            integrityData.integrityScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${integrityData.integrityScore}%` }}
+                        ></div>
+                      </div>
+                      
+                      {integrityData.violations?.length > 0 && (
+                        <div className="mt-3 p-3 bg-red-50 rounded-lg">
+                          <div className="text-sm font-medium text-red-800 mb-1">
+                            Recent Violations ({integrityData.violations.length})
+                          </div>
+                          <div className="text-xs text-red-700">
+                            {integrityData.violations.slice(-3).map((violation, index) => (
+                              <div key={index} className="flex justify-between">
+                                <span>{violation.type}</span>
+                                <span className="font-medium">{violation.severity}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Behavior Analysis */}
+                {behaviorData && (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      Behavioral Analysis
+                    </h4>
+                    
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-600">Attention</span>
+                          <div className="font-bold text-blue-600">{behaviorData.attentionScore}%</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Engagement</span>
+                          <div className={`font-bold capitalize ${
+                            behaviorData.engagementLevel === 'high' ? 'text-green-600' : 
+                            behaviorData.engagementLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {behaviorData.engagementLevel}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Confidence</span>
+                          <div className={`font-bold capitalize ${
+                            behaviorData.confidenceLevel === 'high' ? 'text-green-600' : 
+                            behaviorData.confidenceLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {behaviorData.confidenceLevel}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Eye Contact</span>
+                          <div className={`font-bold capitalize ${
+                            behaviorData.eyeContact === 'excellent' || behaviorData.eyeContact === 'good' ? 'text-green-600' : 
+                            behaviorData.eyeContact === 'average' ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {behaviorData.eyeContact}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {behaviorData.recommendations?.length > 0 && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                          <div className="text-sm font-medium text-blue-800 mb-1">Live Recommendations</div>
+                          <div className="text-xs text-blue-700">
+                            {behaviorData.recommendations.slice(-2).map((rec, index) => (
+                              <div key={index} className="mb-1">• {rec}</div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Question & Answer Panel */}
           <div className="bg-white rounded-3xl shadow-xl p-6">
