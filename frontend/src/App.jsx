@@ -25,7 +25,7 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-white via-mint-50 to-emerald-50 flex flex-col">
           <Navbar />
           <main className="flex-grow">
             <Routes>

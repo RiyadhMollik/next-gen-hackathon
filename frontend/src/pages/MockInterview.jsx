@@ -239,8 +239,8 @@ const MockInterview = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                {currentQuestion.category}
+                            <div className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                Mock Interview #{interview.id}
               </div>
               <div className={`px-4 py-2 rounded-full text-sm font-medium ${
                 currentQuestion.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
@@ -305,7 +305,7 @@ const MockInterview = () => {
                 <button
                   onClick={readQuestion}
                   disabled={isSpeaking}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-200 transition-colors disabled:opacity-50"
                 >
                   {isSpeaking ? (
                     <>
@@ -352,7 +352,7 @@ const MockInterview = () => {
                 className={`flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
                   isRecording 
                     ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }`}
               >
                 {isRecording ? (

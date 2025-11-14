@@ -240,7 +240,7 @@ export const chatAboutJobs = async (req, res) => {
 // @access  Public
 export const jobMatchingHealth = async (req, res) => {
   try {
-    const response = await axios.get(`${CHATBOT_API_URL}/`, { timeout: 5000 });
+    const response = await axios.get(`${CHATBOT_API_URL}/`, { timeout: 5001 });
     res.json({ 
       status: 'online', 
       service: 'job-matching',

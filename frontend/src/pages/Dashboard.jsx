@@ -37,11 +37,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-mint-50 to-emerald-50">
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
         {/* Header */}
         <div className="mb-10 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-primary-600 via-indigo-600 to-mint-600 bg-clip-text text-transparent mb-3">
+          <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-mint-600 bg-clip-text text-transparent mb-3">
             Welcome back, {dashboardData?.user?.fullName}! 👋
           </h1>
           <p className="text-slate-600 text-lg font-medium">Here's your personalized career dashboard</p>
@@ -50,12 +50,12 @@ const Dashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {/* Skills Card */}
-          <div className="group relative overflow-hidden bg-gradient-to-br from-primary-500 to-indigo-600 text-white rounded-3xl p-6 shadow-soft-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 animate-scale-in">
+          <div className="group relative overflow-hidden bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-105 animate-scale-in">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-primary-100 text-sm font-medium mb-2">Your Skills</p>
+                  <p className="text-green-100 text-sm font-medium mb-2">Your Skills</p>
                   <p className="text-5xl font-display font-bold">{dashboardData?.stats?.totalSkills || 0}</p>
                 </div>
                 <div className="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300">
@@ -64,17 +64,17 @@ const Dashboard = () => {
                   </svg>
                 </div>
               </div>
-              <p className="text-primary-50 text-sm">Skills mastered</p>
+              <p className="text-green-50 text-sm">Skills mastered</p>
             </div>
           </div>
 
           {/* Jobs Card */}
-          <div className="group relative overflow-hidden bg-gradient-to-br from-mint-500 to-mint-600 text-white rounded-3xl p-6 shadow-soft-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 animate-scale-in" style={{animationDelay: '0.1s'}}>
+          <div className="group relative overflow-hidden bg-gradient-to-br from-emerald-500 to-mint-600 text-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-105 animate-scale-in" style={{animationDelay: '0.1s'}}>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-16 -mb-16"></div>
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-mint-100 text-sm font-medium mb-2">Recommended Jobs</p>
+                  <p className="text-emerald-100 text-sm font-medium mb-2">Recommended Jobs</p>
                   <p className="text-5xl font-display font-bold">{dashboardData?.stats?.recommendedJobs || 0}</p>
                 </div>
                 <div className="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300">
@@ -83,17 +83,17 @@ const Dashboard = () => {
                   </svg>
                 </div>
               </div>
-              <p className="text-mint-50 text-sm">Matches found</p>
+              <p className="text-emerald-50 text-sm">Matches found</p>
             </div>
           </div>
 
           {/* Resources Card */}
-          <div className="group relative overflow-hidden bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-3xl p-6 shadow-soft-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 animate-scale-in" style={{animationDelay: '0.2s'}}>
+          <div className="group relative overflow-hidden bg-gradient-to-br from-mint-500 to-green-600 text-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-105 animate-scale-in" style={{animationDelay: '0.2s'}}>
             <div className="absolute top-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-8 -mt-8"></div>
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-indigo-100 text-sm font-medium mb-2">Learning Resources</p>
+                  <p className="text-mint-100 text-sm font-medium mb-2">Learning Resources</p>
                   <p className="text-5xl font-display font-bold">{dashboardData?.stats?.availableResources || 0}</p>
                 </div>
                 <div className="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300">
@@ -102,18 +102,18 @@ const Dashboard = () => {
                   </svg>
                 </div>
               </div>
-              <p className="text-indigo-50 text-sm">Courses available</p>
+              <p className="text-mint-50 text-sm">Courses available</p>
             </div>
           </div>
         </div>
 
         {/* Profile Summary */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-soft border border-slate-100 p-8 mb-10 animate-slide-up">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-green-100 p-8 mb-10 animate-slide-up hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-display font-bold text-slate-900">Your Profile</h2>
             <button
               onClick={() => navigate('/profile')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-all duration-200 font-medium text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 font-medium text-sm shadow-lg hover:shadow-xl"
             >
               <span>Update Profile</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,8 +123,8 @@ const Dashboard = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-primary-100 rounded-lg">
-                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
@@ -134,8 +134,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
@@ -156,8 +156,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-mint-100 rounded-lg">
+                <svg className="w-5 h-5 text-mint-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
               </div>
@@ -183,7 +183,7 @@ const Dashboard = () => {
             </div>
             <button
               onClick={() => navigate('/jobs')}
-              className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary-600 border-2 border-primary-200 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-all duration-200 font-semibold shadow-soft"
+              className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
             >
               <span>View All Jobs</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,10 +201,10 @@ const Dashboard = () => {
               ))}
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-primary-50 to-indigo-50 rounded-3xl border-2 border-dashed border-primary-200 p-12 text-center">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl border-2 border-dashed border-green-200 p-12 text-center">
               <div className="max-w-md mx-auto">
-                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
@@ -232,7 +232,7 @@ const Dashboard = () => {
             </div>
             <button
               onClick={() => navigate('/resources')}
-              className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-white text-indigo-600 border-2 border-indigo-200 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200 font-semibold shadow-soft"
+              className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
             >
               <span>View All Resources</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,10 +250,10 @@ const Dashboard = () => {
               ))}
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl border-2 border-dashed border-indigo-200 p-12 text-center">
+            <div className="bg-gradient-to-br from-emerald-50 to-mint-50 rounded-3xl border-2 border-dashed border-emerald-200 p-12 text-center">
               <div className="max-w-md mx-auto">
-                <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>

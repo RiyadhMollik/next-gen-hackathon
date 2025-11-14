@@ -69,7 +69,7 @@ cp .env.example .env
 Edit the `.env` file with your configurations:
 
 ```env
-PORT=5000
+PORT=5001
 NODE_ENV=development
 
 # Database Configuration
@@ -130,7 +130,7 @@ npm run dev
 npm start
 ```
 
-The backend will run on **http://localhost:5000**
+The backend will run on **http://localhost:5001**
 
 ### Start the Frontend Development Server
 
@@ -387,8 +387,8 @@ redis-cli ping
 
 ### Port Already in Use
 ```powershell
-# Find process using port 5000
-netstat -ano | findstr :5000
+# Find process using port 5001
+netstat -ano | findstr :5001
 
 # Kill the process (replace PID)
 taskkill /PID <PID> /F
