@@ -57,6 +57,41 @@ const User = sequelize.define('User', {
   targetRoles: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  address: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  website: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  summary: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  workExperience: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  projects: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  education: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  role: {
+    type: DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user'
   }
 }, {
   timestamps: true,

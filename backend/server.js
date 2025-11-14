@@ -14,6 +14,14 @@ import profileRoutes from './routes/profileRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import learningResourceRoutes from './routes/learningResourceRoutes.js';
 import recommendationRoutes from './routes/recommendationRoutes.js';
+import cvAnalysisRoutes from './routes/cvAnalysisRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
+import jobMatchingRoutes from './routes/jobMatchingRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import roadmapRoutes from './routes/roadmapRoutes.js';
+import interviewRoutes from './routes/interviewRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -34,6 +42,14 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/resources', learningResourceRoutes);
 app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/cv-analysis', cvAnalysisRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/job-matching', jobMatchingRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/roadmaps', roadmapRoutes);
+app.use('/api/interviews', interviewRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -51,7 +67,9 @@ const startServer = async () => {
     console.log('✓ MySQL Database connected');
 
     // Sync models (create tables if they don't exist)
-    await sequelize.sync({ alter: false });
+    // Changed from alter: true to avoid index duplication errors
+    // Use force: false to preserve existing data
+    await sequelize.sync({ force: false });
     console.log('✓ Database models synced');
 
     // Connect to Redis (optional, app continues if Redis fails)

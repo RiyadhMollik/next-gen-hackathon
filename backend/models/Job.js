@@ -24,6 +24,11 @@ const Job = sequelize.define('Job', {
     allowNull: false,
     defaultValue: []
   },
+  skills: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
   experienceLevel: {
     type: DataTypes.ENUM('Fresher', 'Junior', 'Mid', 'Senior'),
     defaultValue: 'Fresher'
@@ -31,6 +36,10 @@ const Job = sequelize.define('Job', {
   jobType: {
     type: DataTypes.ENUM('Internship', 'Part-time', 'Full-time', 'Freelance'),
     defaultValue: 'Full-time'
+  },
+  type: {
+    type: DataTypes.ENUM('Internship', 'Part-time', 'Full-time', 'Freelance'),
+    allowNull: true
   },
   careerTrack: {
     type: DataTypes.STRING,
@@ -49,7 +58,23 @@ const Job = sequelize.define('Job', {
     defaultValue: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  hooks: {
+    beforeCreate: (job) => {
+      // Sync requiredSkills to skills and jobType to type
+      job.skills = job.requiredSkills;
+      job.type = job.jobType;
+    },
+    beforeUpdate: (job) => {
+      // Keep columns in sync on update
+      if (job.changed('requiredSkills')) {
+        job.skills = job.requiredSkills;
+      }
+      if (job.changed('jobType')) {
+        job.type = job.jobType;
+      }
+    }
+  }
 });
 
 export default Job;

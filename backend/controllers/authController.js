@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import models from '../models/index.js';
-
 const { User } = models;
 
 // Validation rules
@@ -55,7 +54,8 @@ export const register = async (req, res, next) => {
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName
+        fullName: user.fullName,
+        role: user.role
       }
     });
   } catch (error) {
@@ -101,7 +101,8 @@ export const login = async (req, res, next) => {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
-        experienceLevel: user.experienceLevel
+        experienceLevel: user.experienceLevel,
+        role: user.role
       }
     });
   } catch (error) {

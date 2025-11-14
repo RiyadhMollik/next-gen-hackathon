@@ -38,7 +38,14 @@ export const updateProfile = async (req, res, next) => {
       preferredCareerTrack,
       cvText,
       projectDescriptions,
-      targetRoles
+      targetRoles,
+      phone,
+      address,
+      website,
+      summary,
+      workExperience,
+      projects,
+      education
     } = req.body;
 
     const user = await User.findByPk(req.userId);
@@ -56,7 +63,14 @@ export const updateProfile = async (req, res, next) => {
       preferredCareerTrack: preferredCareerTrack || user.preferredCareerTrack,
       cvText: cvText !== undefined ? cvText : user.cvText,
       projectDescriptions: projectDescriptions !== undefined ? projectDescriptions : user.projectDescriptions,
-      targetRoles: targetRoles || user.targetRoles
+      targetRoles: targetRoles || user.targetRoles,
+      phone: phone !== undefined ? phone : user.phone,
+      address: address !== undefined ? address : user.address,
+      website: website !== undefined ? website : user.website,
+      summary: summary !== undefined ? summary : user.summary,
+      workExperience: workExperience !== undefined ? workExperience : user.workExperience,
+      projects: projects !== undefined ? projects : user.projects,
+      education: education !== undefined ? education : user.education
     });
 
     // Fetch updated user with skills
