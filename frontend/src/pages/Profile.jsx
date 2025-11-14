@@ -135,7 +135,9 @@ const Profile = () => {
     try {
       const result = await dispatch(uploadCVPDF(file));
       if (!result.error) {
-        alert('CV uploaded and analyzed successfully! Your profile has been updated.');
+        alert('✅ Success! CV uploaded and analyzed successfully. Your profile has been updated with the extracted information.');
+        // Refresh profile to show updated data
+        await dispatch(fetchProfile());
       } else {
         alert('Failed to analyze CV: ' + result.payload);
       }
@@ -364,21 +366,6 @@ const Profile = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-3 flex-wrap">
-              {/* Upload PDF CV Button */}
-              <label className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-soft hover:shadow-lg cursor-pointer">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <span>{uploadingPDF || analyzing ? 'Analyzing CV...' : 'Upload CV PDF'}</span>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handlePDFUpload}
-                  disabled={uploadingPDF || analyzing}
-                  className="hidden"
-                />
-              </label>
-
               {/* Download CV Button */}
               <button
                 onClick={handleDownloadCV}
@@ -668,17 +655,57 @@ const Profile = () => {
                 placeholder="Paste your CV or add notes here for AI analysis..."
               />
               {formData.cvText && formData.cvText.trim() !== '' && (
-                <button
-                  type="button"
-                  onClick={handleAnalyzeCVText}
-                  disabled={analyzing}
-                  className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span>{analyzing ? 'Analyzing with AI...' : 'Analyze CV Text with AI'}</span>
-                </button>
+                <div className="mt-3 flex gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleAnalyzeCVText}
+                    disabled={analyzing || uploadingPDF}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {analyzing ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Analyzing with AI...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        <span>Analyze CV Text with AI</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  <label className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-soft hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    {uploadingPDF ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Processing PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span>Upload CV PDF</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handlePDFUpload}
+                      disabled={uploadingPDF || analyzing}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               )}
             </div>
           </div>

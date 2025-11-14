@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, List, Any
 import json
 import asyncio
+import re
 from career_bot_enhanced import CareerBotRAG
 from job_matching import JobMatchingEngine
 
@@ -28,6 +29,121 @@ app.add_middleware(
 bots = {}
 job_engine = JobMatchingEngine()
 
+# Input/Output Guardrails
+class ContentGuardrails:
+    """Content safety guardrails for LLM inputs and outputs"""
+    
+    # Inappropriate content patterns
+    BLOCKED_PATTERNS = [
+        r'\b(hack|exploit|bypass|jailbreak)\b.*\b(system|security|filter)\b',
+        r'\b(ignore|disregard|forget)\b.*\b(instructions|rules|guidelines)\b',
+        r'\bpretend\s+to\s+be\b',
+        r'\bact\s+as\s+if\b.*\b(no\s+restrictions|unrestricted)\b',
+        r'\b(violent|harmful|illegal|unethical)\s+(content|instructions|advice)\b',
+    ]
+    
+    # Off-topic patterns (non-career related)
+    OFF_TOPIC_PATTERNS = [
+        r'\b(make|build|create|plan|organize)\b.*\b(tour|trip|vacation|holiday|travel)\b(?!.*\b(career|job|industry)\b)',
+        r'\b(make|build|create|how to)\b.*\b(pencil|pen|desk|chair|table|furniture)\b',
+        r'\b(recipe|cook|bake|food|meal|dish)\b(?!.*\b(career|job|chef|culinary)\b)',
+        r'\b(game|movie|music|song|dance|entertainment)\b(?!.*\b(career|job|industry|professional)\b)',
+        r'\b(sports|football|cricket|basketball|athletics)\b(?!.*\b(career|job|coaching|professional)\b)',
+        r'\b(weather|temperature|climate|forecast)\b(?!.*\b(career|job|meteorology)\b)',
+        r'\b(joke|funny|comedy|humor|meme)\b(?!.*\b(career|workplace|professional)\b)',
+        r'\b(shopping|buying|purchase)\b.*\b(clothes|shoes|gadgets)\b(?!.*\b(career|job|retail)\b)',
+        r'\b(medical|health|disease|treatment)\b.*\b(advice|symptoms|cure)\b(?!.*\b(career|healthcare|medical career)\b)',
+        r'\b(relationship|dating|love|marriage)\b(?!.*\b(career|workplace|professional)\b)',
+    ]
+    
+    # Career-focused keywords (allow list)
+    ALLOWED_TOPICS = [
+        'career', 'job', 'skill', 'resume', 'cv', 'interview', 'education',
+        'course', 'learning', 'training', 'salary', 'work', 'experience',
+        'professional', 'development', 'growth', 'opportunity', 'role',
+        'position', 'company', 'industry', 'qualification', 'certification',
+        'internship', 'employment', 'workplace', 'recruiter', 'hiring'
+    ]
+    
+    @staticmethod
+    def validate_input(query: str) -> tuple[bool, str]:
+        """Validate user input query
+        Returns: (is_valid, error_message)
+        """
+        if not query or not query.strip():
+            return False, "Query cannot be empty"
+        
+        if len(query) > 2000:
+            return False, "Query too long. Please keep it under 2000 characters"
+        
+        query_lower = query.lower()
+        
+        # Check for blocked patterns
+        for pattern in ContentGuardrails.BLOCKED_PATTERNS:
+            if re.search(pattern, query_lower, re.IGNORECASE):
+                return False, "Your query contains inappropriate content. Please ask career-related questions only"
+        
+        # Check for off-topic patterns
+        for pattern in ContentGuardrails.OFF_TOPIC_PATTERNS:
+            if re.search(pattern, query_lower, re.IGNORECASE):
+                return False, "I'm a career guidance AI assistant. Please ask questions related to your career, job search, skills, education, or professional development."
+        
+        # Check for excessive special characters (potential injection)
+        special_char_ratio = sum(1 for c in query if not c.isalnum() and not c.isspace()) / len(query)
+        if special_char_ratio > 0.3:
+            return False, "Query contains too many special characters"
+        
+        # Enforce career-related topics for longer queries
+        has_career_topic = any(topic in query_lower for topic in ContentGuardrails.ALLOWED_TOPICS)
+        if not has_career_topic and len(query) > 30:
+            return False, "I specialize in career guidance and professional development. Please ask questions about jobs, skills, education, interviews, resume building, or career planning."
+        
+        return True, ""
+    
+    @staticmethod
+    def sanitize_output(content: str) -> str:
+        """Sanitize LLM output before sending to user"""
+        if not content:
+            return content
+        
+        # Remove potential prompt injection attempts in output
+        sanitized = content
+        
+        # Remove system-level instructions that might have leaked
+        system_patterns = [
+            r'\[SYSTEM\].*?\[\/SYSTEM\]',
+            r'<\|im_start\|>.*?<\|im_end\|>',
+            r'###\s*Instruction:.*?###',
+        ]
+        for pattern in system_patterns:
+            sanitized = re.sub(pattern, '', sanitized, flags=re.IGNORECASE | re.DOTALL)
+        
+        # Ensure output stays professional
+        if len(sanitized) > 5000:
+            sanitized = sanitized[:5000] + "\n\n[Response truncated for length]"
+        
+        return sanitized.strip()
+    
+    @staticmethod
+    def check_output_safety(content: str) -> bool:
+        """Check if output is safe to send"""
+        if not content:
+            return True
+        
+        content_lower = content.lower()
+        
+        # Block outputs with harmful instructions
+        harmful_patterns = [
+            r'\b(how\s+to|instructions\s+for)\s+(hack|exploit|steal|harm)\b',
+            r'\b(illegal|unethical)\s+(activity|action|method)\b',
+        ]
+        
+        for pattern in harmful_patterns:
+            if re.search(pattern, content_lower):
+                return False
+        
+        return True
+
 class ChatRequest(BaseModel):
     query: str
     user_id: Optional[int] = None
@@ -45,8 +161,13 @@ def root():
 
 @app.post("/chat")
 async def chat_stream(request: ChatRequest):
-    """Stream chat responses with full user profile context"""
+    """Stream chat responses with full user profile context and guardrails"""
     try:
+        # INPUT GUARDRAIL: Validate user query
+        is_valid, error_msg = ContentGuardrails.validate_input(request.query)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        
         # Get or create bot with user profile
         key = f"user_{request.user_id}" if request.user_id else "guest"
         if key not in bots:
@@ -59,10 +180,28 @@ async def chat_stream(request: ChatRequest):
         
         async def generate():
             try:
+                accumulated_output = ""
                 for chunk in bot.ask_stream(request.query):
                     if chunk:
-                        yield f"data: {json.dumps({'content': chunk})}\n\n"
-                        await asyncio.sleep(0)
+                        # OUTPUT GUARDRAIL: Sanitize each chunk
+                        sanitized_chunk = ContentGuardrails.sanitize_output(chunk)
+                        accumulated_output += sanitized_chunk
+                        
+                        # Check accumulated output safety periodically
+                        if len(accumulated_output) % 500 < len(sanitized_chunk):
+                            if not ContentGuardrails.check_output_safety(accumulated_output):
+                                yield f"data: {json.dumps({'error': 'Response contained inappropriate content. Please rephrase your question.'})}\n\n"
+                                return
+                        
+                        if sanitized_chunk:
+                            yield f"data: {json.dumps({'content': sanitized_chunk})}\n\n"
+                            await asyncio.sleep(0)
+                
+                # Final safety check
+                if not ContentGuardrails.check_output_safety(accumulated_output):
+                    yield f"data: {json.dumps({'error': 'Response validation failed. Please try a different question.'})}\n\n"
+                    return
+                
                 yield f"data: {json.dumps({'done': True})}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -71,6 +210,8 @@ async def chat_stream(request: ChatRequest):
             generate(),
             media_type="text/event-stream"
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -104,8 +245,13 @@ def get_job_match(user_id: int, experience: str = None, track: str = None, top_n
 
 @app.post("/chat-with-jobs")
 async def chat_with_job_context(request: ChatRequest):
-    """Chat with job matching context included - AI discusses your matched jobs"""
+    """Chat with job matching context included - AI discusses your matched jobs with guardrails"""
     try:
+        # INPUT GUARDRAIL: Validate user query
+        is_valid, error_msg = ContentGuardrails.validate_input(request.query)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        
         # Get job matches if user_id provided
         job_context = ""
         if request.user_id:
@@ -145,10 +291,28 @@ async def chat_with_job_context(request: ChatRequest):
         
         async def generate():
             try:
+                accumulated_output = ""
                 for chunk in bot.ask_stream(enhanced_query):
                     if chunk:
-                        yield f"data: {json.dumps({'content': chunk})}\n\n"
-                        await asyncio.sleep(0)
+                        # OUTPUT GUARDRAIL: Sanitize each chunk
+                        sanitized_chunk = ContentGuardrails.sanitize_output(chunk)
+                        accumulated_output += sanitized_chunk
+                        
+                        # Check accumulated output safety periodically
+                        if len(accumulated_output) % 500 < len(sanitized_chunk):
+                            if not ContentGuardrails.check_output_safety(accumulated_output):
+                                yield f"data: {json.dumps({'error': 'Response contained inappropriate content. Please rephrase your question.'})}\n\n"
+                                return
+                        
+                        if sanitized_chunk:
+                            yield f"data: {json.dumps({'content': sanitized_chunk})}\n\n"
+                            await asyncio.sleep(0)
+                
+                # Final safety check
+                if not ContentGuardrails.check_output_safety(accumulated_output):
+                    yield f"data: {json.dumps({'error': 'Response validation failed. Please try a different question.'})}\n\n"
+                    return
+                
                 yield f"data: {json.dumps({'done': True})}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -157,6 +321,8 @@ async def chat_with_job_context(request: ChatRequest):
             generate(),
             media_type="text/event-stream"
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

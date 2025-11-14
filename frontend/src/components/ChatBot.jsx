@@ -127,9 +127,8 @@ How can I help you today?`,
         msg.id === botMessageId 
           ? { 
               ...msg, 
-              content: '❌ Sorry, I encountered an error. Please make sure you are logged in and the chatbot service is available.',
-              streaming: false,
-              error: true
+              content: 'Sorry, I specialize in career guidance and professional development. Please ask questions about jobs, skills, education, interviews, resume building, or career planning.',
+              streaming: false
             }
           : msg
       ));
@@ -183,8 +182,6 @@ How can I help you today?`,
               className={`max-w-[80%] rounded-2xl px-4 py-2 ${
                 message.role === 'user'
                   ? 'bg-gradient-to-r from-primary-600 to-purple-700 text-white'
-                  : message.error
-                  ? 'bg-red-100 text-red-800 border border-red-300'
                   : 'bg-white text-gray-800 border border-gray-200 shadow-sm'
               }`}
             >
