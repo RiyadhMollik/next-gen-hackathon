@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllJobs, getJobById, createJob, updateJob, deleteJob } from '../controllers/jobController.js';
+import { getAllJobs, getJobById, createJob, updateJob, deleteJob, applyJob } from '../controllers/jobController.js';
 import { authenticate } from '../middleware/auth.js';
 import { cacheMiddleware } from '../middleware/cache.js';
 
@@ -112,6 +112,31 @@ router.get('/', cacheMiddleware(600), getAllJobs);
  *         description: Job not found
  */
 router.get('/:id', getJobById);
+
+/**
+ * @swagger
+ * /jobs/{id}/apply:
+ *   post:
+ *     summary: Apply for a job
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Job ID
+ *     responses:
+ *       200:
+ *         description: Application submitted successfully
+ *       400:
+ *         description: Already applied or invalid request
+ *       404:
+ *         description: Job not found
+ */
+router.post('/:id/apply', applyJob);
 
 /**
  * @swagger

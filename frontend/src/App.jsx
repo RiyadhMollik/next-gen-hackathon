@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Jobs from './pages/Jobs';
+import JobDetails from './pages/JobDetails';
 import Resources from './pages/Resources';
 import Courses from './pages/Courses';
 import CourseEdit from './pages/CourseEdit';
@@ -56,6 +57,14 @@ function App() {
                 element={
                 <PrivateRoute>
                   <Jobs />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId"
+              element={
+                <PrivateRoute>
+                  <JobDetails />
                 </PrivateRoute>
               }
             />

@@ -180,3 +180,51 @@ export const deleteJob = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Apply for a job
+// @route   POST /api/jobs/:id/apply
+// @access  Private
+export const applyJob = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    // Check if job exists
+    const job = await Job.findByPk(id);
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // For now, we'll just return a success message
+    // In a real application, you'd create a JobApplication model/table
+    // and store the application details
+    
+    // Check if user already applied (simulate check)
+    const applicationKey = `application:${userId}:${id}`;
+    const existingApplication = await redisClient.get(applicationKey);
+    
+    if (existingApplication) {
+      return res.status(400).json({ 
+        message: 'You have already applied for this job',
+        applied: true 
+      });
+    }
+
+    // Store application (simulate storing in cache for demo)
+    await redisClient.set(applicationKey, JSON.stringify({
+      userId,
+      jobId: id,
+      appliedAt: new Date().toISOString(),
+      status: 'pending'
+    }), { EX: 86400 * 30 }); // 30 days expiry
+
+    res.json({ 
+      success: true,
+      message: 'Application submitted successfully!',
+      applied: true 
+    });
+  } catch (error) {
+    next(error);
+  }
+};

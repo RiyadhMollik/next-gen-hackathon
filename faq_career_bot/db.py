@@ -7,8 +7,8 @@ def create_connection():
             host="localhost",
             user="root",
             password="",
-            database="hackathon_db",
-            port=3306
+            database="final_db",
+            port=3307
         )
 
         if connection.is_connected():

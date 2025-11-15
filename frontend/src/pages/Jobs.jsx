@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import JobCard from '../components/JobCard';
 
 const Jobs = () => {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -238,7 +240,7 @@ const Jobs = () => {
             <JobCard
               key={job.id}
               job={job}
-              onClick={() => setSelectedJob(job)}
+              onClick={() => navigate(`/jobs/${job.id}`)}
             />
           ))}
         </div>
