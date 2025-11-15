@@ -38,16 +38,14 @@ const Navbar = () => {
           <Link to="/dashboard" className="flex items-center space-x-3 group flex-shrink-0">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 p-2.5 rounded-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-2xl">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+              <div className="w-14 h-14 relative bg-gradient-to-br from-green-500 to-emerald-600 p-2.5 rounded-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-2xl">
+                <img className='rounded-full' src='https://res.cloudinary.com/djcy5yslt/image/upload/v1763159761/i0xmr45nj7tm4ujoqu8i.png'/>
               </div>
               <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-mint-400 rounded-full animate-ping"></div>
             </div>
             <div className="group-hover:translate-x-1 transition-transform duration-300 hidden sm:block">
               <span className="font-display font-bold text-xl bg-gradient-to-r from-green-600 via-emerald-600 to-mint-600 bg-clip-text text-transparent">
-                EmpowerRoute
+                CareerLift
               </span>
               <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500 rounded-full"></div>
             </div>

@@ -1,7 +1,7 @@
 {
-  "name": "empowerroute-backend",
+  "name": "CareerLift-backend",
   "version": "1.0.0",
-  "description": "Backend for EmpowerRoute - AI-Powered Career Platform",
+  "description": "Backend for CareerLift - AI-Powered Career Platform",
   "main": "server.js",
   "type": "module",
   "scripts": {

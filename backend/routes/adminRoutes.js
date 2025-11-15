@@ -9,7 +9,11 @@ import {
   updateResource,
   deleteResource,
   getAllUsers,
-  getDashboardStats
+  getDashboardStats,
+  getDisadvantagedGroupsOpportunities,
+  getRegionalOpportunities,
+  updateJobForDisadvantagedGroups,
+  getSDGImpactReport
 } from '../controllers/adminController.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { isAdmin } from '../middleware/adminMiddleware.js';
@@ -22,6 +26,12 @@ router.use(isAdmin);
 
 // Dashboard stats
 router.get('/stats', getDashboardStats);
+
+// Disadvantaged groups and regional opportunities
+router.get('/opportunities/disadvantaged-groups', getDisadvantagedGroupsOpportunities);
+router.get('/opportunities/regional', getRegionalOpportunities);
+router.put('/jobs/:jobId/disadvantaged-groups', updateJobForDisadvantagedGroups);
+router.get('/sdg-impact-report', getSDGImpactReport);
 
 // Job management
 router.get('/jobs', getAllJobs);

@@ -20,6 +20,10 @@ import MockInterview from './pages/MockInterview';
 import InterviewFeedback from './pages/InterviewFeedback';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import AdminPanel from './pages/AdminPanel';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminJobs from './pages/AdminJobs';
+import AdminResources from './pages/AdminResources';
+import AdminUsers from './pages/AdminUsers';
 
 function App() {
   return (
@@ -132,6 +136,38 @@ function App() {
               element={
                 <PrivateRoute>
                   <AdminPanel />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <PrivateRoute>
+                  <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/jobs"
+              element={
+                <PrivateRoute>
+                  <AdminJobs />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/resources"
+              element={
+                <PrivateRoute>
+                  <AdminResources />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <PrivateRoute>
+                  <AdminUsers />
                 </PrivateRoute>
               }
             />

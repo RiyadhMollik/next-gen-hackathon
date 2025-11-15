@@ -144,7 +144,7 @@ const Login = () => {
         {/* Trust Indicators */}
         <div className="mt-8 text-center">
           <p className="text-slate-500 text-xs font-medium">
-            🔒 Secure login • 🌱 SDG 8 Initiative • ⚡ EmpowerRoute
+            🔒 Secure login • 🌱 SDG 8 Initiative • ⚡ CareerLift
           </p>
         </div>
       </div>

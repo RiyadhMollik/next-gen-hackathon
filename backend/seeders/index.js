@@ -23,7 +23,7 @@ const seedDatabase = async () => {
     const usersData = [
       {
         fullName: 'Admin User',
-        email: 'admin@empowerroute.com',
+        email: 'admin@CareerLift.com',
         password: await bcrypt.hash('admin123', 10),
         preferredCareerTrack: 'Management',
         experienceLevel: 'Senior',

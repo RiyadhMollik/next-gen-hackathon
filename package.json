@@ -1,7 +1,7 @@
 {
-  "name": "empowerroute",
+  "name": "CareerLift",
   "version": "1.0.0",
-  "description": "EmpowerRoute - SDG 8: AI-Powered Career Platform",
+  "description": "CareerLift - SDG 8: AI-Powered Career Platform",
   "private": true,
   "scripts": {
     "setup": "powershell -ExecutionPolicy Bypass -File ./setup.ps1",
