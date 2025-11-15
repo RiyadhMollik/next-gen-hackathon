@@ -24,13 +24,13 @@ const Footer = () => {
           <div className="space-y-6">
             <div className="group">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  
+                <img src='https://res.cloudinary.com/djcy5yslt/image/upload/v1763159761/i0xmr45nj7tm4ujoqu8i.png'/>
+              
                 </div>
                 <div>
-                  <h3 className="text-white font-bold text-2xl bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">EmpowerRoute</h3>
+                  <h3 className="text-white font-bold text-2xl bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">CareerLift</h3>
                   <p className="text-sm text-emerald-400 font-medium">🌟 Career Growth Platform</p>
                 </div>
               </div>
@@ -181,7 +181,7 @@ const Footer = () => {
                 </div>
                 <div>
                   <p className="font-medium">Email Support</p>
-                  <p className="text-sm text-emerald-400">support@empowerroute.ai</p>
+                  <p className="text-sm text-emerald-400">support@CareerLift.ai</p>
                 </div>
               </div>
               
@@ -228,7 +228,7 @@ const Footer = () => {
             <div className="text-center lg:text-left">
               <div className="text-gray-300 mb-2 flex items-center justify-center lg:justify-start space-x-2">
                 <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span>© {currentYear} EmpowerRoute - AI-Powered Career Platform</span>
+                <span>© {currentYear} CareerLift - AI-Powered Career Platform</span>
               </div>
               <p className="text-sm text-gray-400 flex items-center justify-center lg:justify-start space-x-2">
                 <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">

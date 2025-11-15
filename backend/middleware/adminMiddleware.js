@@ -11,7 +11,7 @@ export const isAdmin = (req, res, next) => {
 
     // Check if user has admin role
     // You can modify this based on your User model structure
-    if (req.user.role !== 'admin' && req.user.email !== 'admin@empowerroute.com') {
+    if (req.user.role !== 'admin' && req.user.email !== 'admin@CareerLift.com') {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
